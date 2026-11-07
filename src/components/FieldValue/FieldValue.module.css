@@ -1,0 +1,14 @@
+.unknown {
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+.inaccurate {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--color-warn-bg);
+  color: var(--color-warn-text);
+}

@@ -1,3 +1,5 @@
+import { Category } from "@/lib/types";
+
 const DEFAULT_DATA_URL = "https://storage.googleapis.com/interview-booking/italy.json";
 const DEFAULT_REVALIDATE_SECONDS = 3600;
 
@@ -19,10 +21,7 @@ export const ITALY_BOUNDS = [
   [47.1, 18.6],
 ] as const satisfies readonly [readonly [number, number], readonly [number, number]];
 
-/**
- * Display groups for the category filter. Categories not listed here are their own group.
- * Values are `Category` names; they are typed against the enum once it exists in stage 1.
- */
-export const CATEGORY_GROUPS: Readonly<Record<string, readonly string[]>> = {
-  Food: ["Restaurant", "Cafe"],
+/** Display groups for the category filter. Categories not listed here are their own group. */
+export const CATEGORY_GROUPS: Readonly<Record<string, readonly Category[]>> = {
+  Food: [Category.Restaurant, Category.Cafe],
 };

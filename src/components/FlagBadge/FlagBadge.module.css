@@ -1,0 +1,22 @@
+.badge {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.warn {
+  background: var(--color-warn-bg);
+  color: var(--color-warn-text);
+  border-color: #f0c674;
+}
+
+.info {
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
+  border-color: #b6cdee;
+}
