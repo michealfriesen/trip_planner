@@ -113,6 +113,7 @@ A planner that trusts this data without checking it will produce itineraries tha
 *   **Editing an itinerary by hand.** The traveler changes their interest levels or must-visits and generates the plan again.
 *   **Drag-to-rank lists, map marker clustering, saving filters in the URL, and syncing across browser tabs.**
 *   **Any server-side storage of the traveler's choices.**
+*   **Place photos.** Planned as future work: see [Place images from Wikipedia](#place-images-from-wikipedia).
 *   **Detecting or merging duplicate places.** Known pairs include Mercato Centrale (030/031), Trevi (018/077) and Acetaia Giusti (044/083). The README documents this as a known issue: if a traveler rates both copies, the planner can schedule the same place twice under two names.
 
 ## Open Questions
@@ -613,6 +614,56 @@ Greedy insertion does not guarantee the best plan. That is accepted, because the
 | R10 | OpenStreetMap tile usage policy. | Licence / ops | Tiles blocked for heavy use. | Show the required attribution. Demo traffic only. | Production use needs a tile provider. |
 | R11 | opening_hours.js is LGPL-3.0. | Licence | Obligations if the library is modified or bundled. | It runs only on the server, unmodified, as a separate package (`serverExternalPackages`). | None for this use. |
 | R12 | The planner's run time as the dataset grows. | Scalability | Greedy insertion is roughly O(stops × candidates × positions) per run, multiplied by the number of seeds. | Fine for 103 places. Beyond about 1,000 places, cap candidates by points and lower `maxSeeds`. | Not tested at scale. |
+
+## Future Work
+
+### Place images from Wikipedia
+
+Show a photo on each place card, taken from Wikipedia / Wikimedia Commons. It needs no API key and has no cost. When no good match is found, the card keeps the category icon. A missing photo is better than a wrong one.
+
+**Coverage, from a spot check of 7 places (2026-11-07).**
+*   A search by name found the right image for Colosseum, Borghese Gallery (via "Galleria Borghese"), Osteria Francescana and Caffè Florian.
+*   Aventine Keyhole matched its parent page, Villa del Priorato di Malta.
+*   "Gelato at Giolitti" matched "List of ice cream brands", which is wrong. "Aperitivo at Rasputin" matched nothing.
+*   Expect good coverage for landmarks and famous venues, and little for small bars and "experience" places.
+
+**Matching.** A geosearch on its own is not enough. Around the Colosseum, the right page is 11 m away. Around Giolitti, which has no page, five unrelated pages lie within 100 m (a fountain, a church, a square). So matches combine these signals:
+
+| Signal | API | Use |
+| --- | --- | --- |
+| Distance from the place to the page's coordinates | `generator=geosearch` (`ggsradius=300`) or `prop=coordinates` | Reject over about 300 m. Never enough on its own to accept. |
+| Name similarity between the place name and the page title, its redirects, and its Italian title | `prop=redirects`, `prop=langlinks` | The main signal for accepting a match. Compare with `foldText`, after removing filler words ("at", "the") and a trailing ", <city>". |
+| Wikidata "instance of" (P31) compared with `Category` | `ppprop=wikibase_item`, then Wikidata | Confirms a match. Rejects a mismatch, such as a restaurant matched to a church or metro station. |
+| Disambiguation or list page | `ppprop=disambiguation`, title starting "List of" | Always reject. |
+| Image type | `pageimages` file name, `imageinfo` | Reject `.svg` files (usually locator maps or logos). Prefer Wikidata P18 (the curated main image) over the `pageimages` guess. |
+
+**Rule.**
+1. Collect candidates from a 300 m geosearch, plus a name search on en and it Wikipedia.
+2. Drop disambiguation pages, list pages, candidates more than 300 m away, and `.svg` images.
+3. Accept the best candidate only if its title, a redirect or its Italian title closely matches the name. A matching Wikidata type adds confidence.
+4. Otherwise, show no image.
+
+**Where it runs.**
+*   Images are looked up on the server when the dataset loads, and cached with the same `revalidate` as the data. Visitors never trigger 103 lookups.
+*   The result is stored on `Place` as an optional image field: `{ url, pageTitle, author, licence }`.
+*   Lookups send a descriptive `User-Agent`, as Wikimedia's API policy asks.
+*   A lookup failure never blocks the page.
+
+**Licence.** Commons images are under CC BY-SA and similar licences. Each card shows the author and licence, with a link to the file page.
+
+**Debug.** With `?debug`, each card shows the matched page, the distance and which signals passed, so matches can be checked by eye.
+
+**Tests.** Recorded API responses as fixtures cover:
+*   accepting Colosseum and Galleria Borghese
+*   rejecting Giolitti (no page nearby) and the "List of ice cream brands" page
+*   rejecting a near but unrelated page
+
+**Estimate.** About 30–45 minutes.
+
+**Other sources considered.**
+*   Google Places Photos: best coverage, but it needs a key and billing, and its terms limit storing photos.
+*   Unsplash or Pexels: generic photos, not the actual venue. They need a key and are rate limited.
+*   Foursquare: needs a key, with a limited free tier.
 
 ## Alternatives Considered
 
