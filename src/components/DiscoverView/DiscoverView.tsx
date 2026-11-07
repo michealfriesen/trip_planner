@@ -2,6 +2,7 @@
 
 import { Maximize2, Minimize2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ClearRatings from "@/components/ClearRatings/ClearRatings";
 import FilterBar from "@/components/FilterBar/FilterBar";
 import MapPlacePanel from "@/components/MapPlacePanel/MapPlacePanel";
 import PlaceList from "@/components/PlaceList/PlaceList";
@@ -39,7 +40,7 @@ export default function DiscoverView({ places, fetchedAt, linkedPlaceId }: Disco
   // Bumped when a pin is chosen with the keyboard, to move focus into the panel once it renders.
   const [panelFocusSeq, setPanelFocusSeq] = useState(0);
   const panelRef = useRef<HTMLElement>(null);
-  const { prefs, ready, setInterest, setMustVisit } = usePreferences();
+  const { prefs, ready, setInterest, setMustVisit, clearRatings, restoreRatings } = usePreferences();
   const prefHandlers = useMemo(() => ({ ready, setInterest, setMustVisit }), [ready, setInterest, setMustVisit]);
 
   const options = useMemo(() => filterOptions(places), [places]);
@@ -230,6 +231,12 @@ export default function DiscoverView({ places, fetchedAt, linkedPlaceId }: Disco
             <SortSelect value={sortKey} onChange={setSortKey} />
           </div>
           <FilterBar options={options} criteria={criteria} onChange={setCriteria} onClear={clearFilters} />
+          <ClearRatings
+            ratings={prefs.places}
+            ready={ready}
+            onClear={clearRatings}
+            onRestore={restoreRatings}
+          />
         </div>
         <PlaceList
           matches={listed.matches}

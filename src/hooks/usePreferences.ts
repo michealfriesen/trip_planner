@@ -59,5 +59,15 @@ export function usePreferences() {
     setPrefs((p) => ({ ...p, trip: { ...p.trip, ...trip } }));
   }, []);
 
-  return { prefs, ready, setInterest, setMustVisit, setTrip };
+  /** Clears every place rating (interest and must-visit); trip settings are kept. */
+  const clearRatings = useCallback(() => {
+    setPrefs((p) => ({ ...p, places: {} }));
+  }, []);
+
+  /** Puts back ratings from `clearRatings`. Ratings made since then win over the restored ones. */
+  const restoreRatings = useCallback((places: StoredPrefs["places"]) => {
+    setPrefs((p) => ({ ...p, places: { ...places, ...p.places } }));
+  }, []);
+
+  return { prefs, ready, setInterest, setMustVisit, setTrip, clearRatings, restoreRatings };
 }
