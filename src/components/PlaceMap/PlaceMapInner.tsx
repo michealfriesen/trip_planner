@@ -24,7 +24,8 @@ export interface PlaceMapProps {
   places: Place[];
   selectedId: string | null;
   focus: MapFocus | null;
-  onSelect: (id: string) => void;
+  /** `keyboard` is true when a pin was chosen with Enter or Space. */
+  onSelect: (id: string, options?: { keyboard: boolean }) => void;
   /** Full-screen mode: pins show a condensed card on hover and can be reached with the keyboard. */
   expanded: boolean;
   prefs: Record<string, PlacePref>;
@@ -80,12 +81,17 @@ function pinIcon(category: Category, selected: boolean): DivIcon {
 
 function FitBounds({ pins }: { pins: Pin[] }) {
   const map = useMap();
+  // Refit only when the set of places changes, not when the same places are re-sorted or a rating changes.
+  const placeSet = useMemo(() => pins.map((p) => p.place.id).sort().join(","), [pins]);
+  const pinsRef = useRef(pins);
+  pinsRef.current = pins;
 
   useEffect(() => {
-    if (pins.length === 0) map.fitBounds(COUNTRY_BOUNDS);
-    else if (pins.length === 1) map.setView(pins[0].point, 13);
-    else map.fitBounds(pins.map((p) => p.point), { padding: [24, 24] });
-  }, [map, pins]);
+    const current = pinsRef.current;
+    if (current.length === 0) map.fitBounds(COUNTRY_BOUNDS);
+    else if (current.length === 1) map.setView(current[0].point, 13);
+    else map.fitBounds(current.map((p) => p.point), { padding: [24, 24] });
+  }, [map, placeSet]);
 
   return null;
 }
@@ -124,20 +130,21 @@ interface PlaceMarkerProps {
   selected: boolean;
   expanded: boolean;
   pref: PlacePref | undefined;
-  onSelect: (id: string) => void;
+  onSelect: (id: string, options?: { keyboard: boolean }) => void;
 }
 
 function PlaceMarker({ pin, selected, expanded, pref, onSelect }: PlaceMarkerProps) {
   const ref = useRef<LeafletMarker>(null);
   const icon = pinIcon(pin.place.type, selected);
 
-  // Leaflet replaces the element whenever the icon changes, so the name is reapplied after each change.
+  // Leaflet replaces the element whenever the icon changes, so the attributes are reapplied after each change.
   useEffect(() => {
     const el = ref.current?.getElement();
     if (!el || !expanded) return;
     el.setAttribute("aria-label", pin.place.name);
     el.setAttribute("aria-pressed", String(selected));
-  }, [icon, expanded, selected, pin.place.name]);
+    el.dataset.placeId = pin.place.id;
+  }, [icon, expanded, selected, pin.place.name, pin.place.id]);
 
   return (
     <Marker
@@ -148,7 +155,16 @@ function PlaceMarker({ pin, selected, expanded, pref, onSelect }: PlaceMarkerPro
       // Beside the list, the list is the keyboard path and 100 extra tab stops would get in the way.
       // In full screen the list is hidden, so the pins take its place.
       keyboard={expanded}
-      eventHandlers={{ click: () => onSelect(pin.place.id) }}
+      eventHandlers={{
+        click: () => onSelect(pin.place.id),
+        // Leaflet gives markers role="button" but does not activate them from the keyboard.
+        keydown: (e) => {
+          const key = (e.originalEvent as KeyboardEvent).key;
+          if (key !== "Enter" && key !== " ") return;
+          e.originalEvent.preventDefault();
+          onSelect(pin.place.id, { keyboard: true });
+        },
+      }}
     >
       {expanded ? (
         <Tooltip direction="top" opacity={1} className={styles.summaryTooltip}>

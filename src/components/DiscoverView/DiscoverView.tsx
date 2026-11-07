@@ -1,8 +1,9 @@
 "use client";
 
 import { Maximize2, Minimize2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FilterBar from "@/components/FilterBar/FilterBar";
+import MapPlacePanel from "@/components/MapPlacePanel/MapPlacePanel";
 import PlaceList from "@/components/PlaceList/PlaceList";
 import PlaceMap, { type MapFocus } from "@/components/PlaceMap/PlaceMap";
 import SearchBox from "@/components/SearchBox/SearchBox";
@@ -29,6 +30,9 @@ export default function DiscoverView({ places, fetchedAt }: DiscoverViewProps) {
   const [searchKey, setSearchKey] = useState(0);
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [mapExpanded, setMapExpanded] = useState(false);
+  // Bumped when a pin is chosen with the keyboard, to move focus into the panel once it renders.
+  const [panelFocusSeq, setPanelFocusSeq] = useState(0);
+  const panelRef = useRef<HTMLElement>(null);
   const { prefs, ready, setInterest, setMustVisit } = usePreferences();
   const prefHandlers = useMemo(() => ({ ready, setInterest, setMustVisit }), [ready, setInterest, setMustVisit]);
 
@@ -61,6 +65,24 @@ export default function DiscoverView({ places, fetchedAt }: DiscoverViewProps) {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [mapExpanded]);
 
+  useEffect(() => {
+    if (panelFocusSeq > 0) panelRef.current?.focus();
+  }, [panelFocusSeq]);
+
+  const selectFromMap = useCallback((id: string, options?: { keyboard: boolean }) => {
+    setSelectedId(id);
+    if (options?.keyboard) setPanelFocusSeq((n) => n + 1);
+  }, []);
+
+  function closePanel() {
+    const id = selectedId;
+    setSelectedId(null);
+    // Return focus to the pin the panel belonged to, so keyboard users keep their place on the map.
+    if (id) document.querySelector<HTMLElement>(`.leaflet-marker-icon[data-place-id="${CSS.escape(id)}"]`)?.focus();
+  }
+
+  const selectedPlace = mapExpanded ? shown.find((p) => p.id === selectedId) : undefined;
+
   // Choosing a card moves the map to it; choosing a marker only selects, since the marker is already in view.
   function selectFromList(id: string) {
     setSelectedId(id);
@@ -86,10 +108,19 @@ export default function DiscoverView({ places, fetchedAt }: DiscoverViewProps) {
           places={shown}
           selectedId={selectedId}
           focus={focus}
-          onSelect={setSelectedId}
+          onSelect={selectFromMap}
           expanded={mapExpanded}
           prefs={prefs.places}
         />
+        {selectedPlace && (
+          <MapPlacePanel
+            ref={panelRef}
+            place={selectedPlace}
+            pref={prefs.places[selectedPlace.id]}
+            prefHandlers={prefHandlers}
+            onClose={closePanel}
+          />
+        )}
         <div className={styles.mapControls}>
           {mapExpanded && <p className={styles.mapCount}>{countText}</p>}
           <button
