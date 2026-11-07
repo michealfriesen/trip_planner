@@ -5,9 +5,9 @@ import FilterBar from "@/components/FilterBar/FilterBar";
 import PlaceList from "@/components/PlaceList/PlaceList";
 import PlaceMap, { type MapFocus } from "@/components/PlaceMap/PlaceMap";
 import SearchBox from "@/components/SearchBox/SearchBox";
+import { usePreferences } from "@/hooks/usePreferences";
 import { EMPTY_CRITERIA, filterOptions, filterPlaces, type FilterCriteria } from "@/lib/discover/filterPlaces";
 import { usableCoordinates } from "@/lib/geo";
-import type { PlacePref } from "@/lib/prefs/types";
 import type { DataIssue, Place } from "@/lib/types";
 import styles from "./DiscoverView.module.css";
 
@@ -18,20 +18,19 @@ interface DiscoverViewProps {
   fetchedAt: string;
 }
 
-// Preferences arrive in stage 3; a stable empty object keeps the filter memo from rerunning.
-const NO_PREFS: Record<string, PlacePref> = {};
-
 export default function DiscoverView({ places, fetchedAt }: DiscoverViewProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [focus, setFocus] = useState<MapFocus | null>(null);
   const [criteria, setCriteria] = useState<FilterCriteria>(EMPTY_CRITERIA);
   // Bumped by "Clear filters" to remount the search box with an empty value.
   const [searchKey, setSearchKey] = useState(0);
+  const { prefs, ready, setInterest, setMustVisit } = usePreferences();
+  const prefHandlers = useMemo(() => ({ ready, setInterest, setMustVisit }), [ready, setInterest, setMustVisit]);
 
   const options = useMemo(() => filterOptions(places), [places]);
   const { matches, uncertainMatches } = useMemo(
-    () => filterPlaces(places, criteria, NO_PREFS),
-    [places, criteria],
+    () => filterPlaces(places, criteria, prefs.places),
+    [places, criteria, prefs.places],
   );
   const shown = useMemo(() => [...matches, ...uncertainMatches], [matches, uncertainMatches]);
 
@@ -82,6 +81,8 @@ export default function DiscoverView({ places, fetchedAt }: DiscoverViewProps) {
         <PlaceList
           matches={matches}
           uncertainMatches={uncertainMatches}
+          prefs={prefs.places}
+          prefHandlers={prefHandlers}
           selectedId={selectedId}
           onSelect={selectFromList}
         />

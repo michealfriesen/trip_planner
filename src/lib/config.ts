@@ -25,3 +25,7 @@ export const ITALY_BOUNDS = [
 export const CATEGORY_GROUPS: Readonly<Record<string, readonly Category[]>> = {
   Food: [Category.Restaurant, Category.Cafe],
 };
+
+/** Default planning day, 'HH:mm'. Stage 4 moves these into PlannerConfig. */
+export const DEFAULT_DAY_START = "09:00";
+export const DEFAULT_DAY_END = "21:00";

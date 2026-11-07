@@ -5,16 +5,28 @@ import CategoryIcon from "@/components/CategoryIcon/CategoryIcon";
 import FieldValue from "@/components/FieldValue/FieldValue";
 import FlagBadge from "@/components/FlagBadge/FlagBadge";
 import HoursValue from "@/components/HoursValue/HoursValue";
+import InterestControl from "@/components/InterestControl/InterestControl";
+import MustVisitToggle from "@/components/MustVisitToggle/MustVisitToggle";
+import type { Interest, PlacePref } from "@/lib/prefs/types";
 import type { Place } from "@/lib/types";
 import styles from "./PlaceCard.module.css";
 
+export interface PrefHandlers {
+  /** False until stored preferences have loaded; the controls stay disabled until then. */
+  ready: boolean;
+  setInterest: (id: string, interest: Interest | undefined) => void;
+  setMustVisit: (id: string, mustVisit: boolean) => void;
+}
+
 interface PlaceCardProps {
   place: Place;
+  pref: PlacePref | undefined;
+  prefHandlers: PrefHandlers;
   selected: boolean;
   onSelect: (id: string) => void;
 }
 
-export default function PlaceCard({ place, selected, onSelect }: PlaceCardProps) {
+export default function PlaceCard({ place, pref, prefHandlers, selected, onSelect }: PlaceCardProps) {
   const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -51,6 +63,22 @@ export default function PlaceCard({ place, selected, onSelect }: PlaceCardProps)
         </h3>
         <CategoryIcon category={place.type} />
       </header>
+
+      <div className={styles.prefs}>
+        <InterestControl
+          placeName={place.name}
+          interest={pref?.interest}
+          mustVisit={pref?.mustVisit ?? false}
+          disabled={!prefHandlers.ready}
+          onChange={(v) => prefHandlers.setInterest(place.id, v)}
+        />
+        <MustVisitToggle
+          mustVisit={pref?.mustVisit ?? false}
+          locatable={location.locationQuality === "ok"}
+          disabled={!prefHandlers.ready}
+          onChange={(v) => prefHandlers.setMustVisit(place.id, v)}
+        />
+      </div>
 
       <dl className={styles.facts}>
         {where && (
