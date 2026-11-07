@@ -1,0 +1,23 @@
+.box {
+  display: grid;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.heading {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.reason {
+  margin: 0 0 var(--space-1);
+  font-size: 0.95rem;
+  color: var(--color-muted);
+}
+
+.list {
+  margin: 0;
+  padding-left: var(--space-4);
+  columns: 2 14rem;
+}

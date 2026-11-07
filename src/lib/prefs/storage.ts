@@ -1,4 +1,4 @@
-import { DEFAULT_DAY_END, DEFAULT_DAY_START } from "@/lib/config";
+import { PLANNER_CONFIG } from "@/lib/config";
 import type { Interest, PlacePref, StoredPrefs } from "@/lib/prefs/types";
 
 export const STORAGE_KEY = "trip-planner:prefs:v1";
@@ -8,7 +8,11 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME = /^\d{2}:\d{2}$/;
 
 export function emptyPrefs(): StoredPrefs {
-  return { version: 1, places: {}, trip: { dayStart: DEFAULT_DAY_START, dayEnd: DEFAULT_DAY_END } };
+  return {
+    version: 1,
+    places: {},
+    trip: { dayStart: PLANNER_CONFIG.defaultDayStart, dayEnd: PLANNER_CONFIG.defaultDayEnd },
+  };
 }
 
 function isRecord(v: unknown): v is Record<string, unknown> {

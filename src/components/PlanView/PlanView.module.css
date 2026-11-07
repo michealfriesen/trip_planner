@@ -1,0 +1,40 @@
+.page {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.setup {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.summary,
+.status {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.summary strong {
+  color: var(--color-text);
+}
+
+.error {
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-warn-border);
+  border-radius: 8px;
+  background: var(--color-warn-bg);
+  color: var(--color-text);
+}
+
+.error p {
+  margin: 0 0 var(--space-2);
+}

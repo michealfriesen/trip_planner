@@ -49,6 +49,7 @@ export default function PlaceCard({ place, pref, prefHandlers, selected, onSelec
 
   return (
     <article
+      id={`place-${place.id}`}
       ref={ref}
       className={`${styles.card} ${selected ? styles.selected : ""}`}
       onClick={handleCardClick}
