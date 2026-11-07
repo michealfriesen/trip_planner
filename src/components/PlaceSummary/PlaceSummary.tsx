@@ -13,8 +13,19 @@ const INTEREST = {
   very: { label: "Very interested", icon: <Heart size={14} aria-hidden="true" fill="currentColor" /> },
 } as const;
 
-/** A read-only, condensed place card, shown when hovering a pin on the full-screen map or a place on the Plan page. */
-export default function PlaceSummary({ place, pref }: { place: Place; pref: PlacePref | undefined }) {
+/**
+ * A read-only, condensed place card, shown when hovering a pin on the full-screen map or a place on the Plan page.
+ * The description is cut to 3 lines unless `fullDescription` is set (the map's place panel, which scrolls).
+ */
+export default function PlaceSummary({
+  place,
+  pref,
+  fullDescription = false,
+}: {
+  place: Place;
+  pref: PlacePref | undefined;
+  fullDescription?: boolean;
+}) {
   const where = [place.location.neighborhood, place.location.city].filter(Boolean).join(", ");
   const interest = pref?.interest && INTEREST[pref.interest];
   const booking = place.bookingRequired.status === "ok" && place.bookingRequired.value;
@@ -52,7 +63,9 @@ export default function PlaceSummary({ place, pref }: { place: Place; pref: Plac
         )
       )}
 
-      {place.description && <p className={styles.description}>{place.description}</p>}
+      {place.description && (
+        <p className={fullDescription ? styles.fullDescription : styles.description}>{place.description}</p>
+      )}
     </div>
   );
 }

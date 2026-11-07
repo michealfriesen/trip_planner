@@ -53,3 +53,7 @@
   overflow: hidden;
   color: var(--color-muted);
 }
+
+.fullDescription {
+  color: var(--color-muted);
+}

@@ -39,8 +39,11 @@ const MapPlacePanel = forwardRef<HTMLElement, MapPlacePanelProps>(function MapPl
       <button type="button" className={styles.close} aria-label="Close" title="Close" onClick={onClose}>
         <X size={16} aria-hidden="true" />
       </button>
-      {/* The controls below show the interest, so the summary doesn't repeat it. */}
-      <PlaceSummary place={place} pref={undefined} />
+      {/* The controls below show the interest, so the summary doesn't repeat it. The full description scrolls
+          here, so the close button and rating controls stay in view. */}
+      <div className={styles.scroll} role="region" aria-label="Place details" tabIndex={0}>
+        <PlaceSummary place={place} pref={undefined} fullDescription />
+      </div>
       <div className={styles.prefs}>
         <InterestControl
           placeName={place.name}
