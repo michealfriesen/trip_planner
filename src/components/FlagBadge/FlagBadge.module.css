@@ -12,11 +12,11 @@
 .warn {
   background: var(--color-warn-bg);
   color: var(--color-warn-text);
-  border-color: #f0c674;
+  border-color: var(--color-warn-border);
 }
 
 .info {
   background: var(--color-info-bg);
   color: var(--color-info-text);
-  border-color: #b6cdee;
+  border-color: var(--color-info-border);
 }

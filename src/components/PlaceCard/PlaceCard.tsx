@@ -24,8 +24,20 @@ export default function PlaceCard({ place, selected, onSelect }: PlaceCardProps)
   const { location } = place;
   const where = [location.neighborhood, location.city].filter(Boolean).join(", ");
 
+  // Mouse convenience: the whole card selects. Keyboard and screen readers use the title button.
+  function handleCardClick(e: React.MouseEvent<HTMLElement>) {
+    const target = e.target as HTMLElement;
+    if (target.closest("a, button, input, select, textarea, label, [tabindex]")) return;
+    if (window.getSelection()?.toString()) return; // the traveler is selecting text
+    onSelect(place.id);
+  }
+
   return (
-    <article ref={ref} className={`${styles.card} ${selected ? styles.selected : ""}`}>
+    <article
+      ref={ref}
+      className={`${styles.card} ${selected ? styles.selected : ""}`}
+      onClick={handleCardClick}
+    >
       <header className={styles.header}>
         <h3 className={styles.name}>
           <button

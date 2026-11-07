@@ -1,6 +1,6 @@
 .layout {
   display: grid;
-  grid-template-columns: minmax(340px, 1fr) minmax(0, 1.2fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(340px, 1fr);
   gap: var(--space-4);
   padding: var(--space-4) var(--space-5);
   height: calc(100vh - 58px);
@@ -46,7 +46,6 @@
   }
 
   .mapPane {
-    order: -1;
     height: 50vh;
   }
 

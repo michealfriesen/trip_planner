@@ -3,3 +3,48 @@
   height: 100%;
   min-height: 400px;
 }
+
+/* The icon box is positioned by Leaflet (it sets `transform`), so all visuals live on the inner dot. */
+.pin:global(.leaflet-div-icon) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 0;
+}
+
+.dot {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-marker);
+  border: 2px solid var(--color-marker-ring);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 35%);
+  transition:
+    background-color 150ms ease,
+    width 150ms ease,
+    height 150ms ease;
+}
+
+.pin:hover .dot {
+  width: 16px;
+  height: 16px;
+}
+
+.selected .dot,
+.selected:hover .dot {
+  width: 18px;
+  height: 18px;
+  background: var(--color-marker-selected);
+  border-width: 3px;
+  box-shadow:
+    0 0 0 2px var(--color-marker-selected),
+    0 1px 4px rgb(0 0 0 / 45%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    transition: none;
+  }
+}

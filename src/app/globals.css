@@ -1,17 +1,61 @@
+/* Gruvbox palettes. `data-theme` on <html> is set before first paint by the script in layout.tsx. */
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --gb-page: #fbf1c7; /* bg0 */
+  --gb-surface: #f9f5d7; /* bg0_h */
+  --gb-bg1: #ebdbb2;
+  --gb-bg2: #d5c4a1;
+  --gb-fg: #3c3836;
+  --gb-fg4: #7c6f64;
+  --gb-red: #9d0006;
+  --gb-green: #79740e;
+  --gb-yellow: #b57614;
+  --gb-blue: #076678;
+  --gb-purple: #8f3f71;
+  --gb-aqua: #427b58;
+  --gb-orange: #af3a03;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --gb-page: #1d2021; /* bg0_h */
+  --gb-surface: #282828; /* bg0 */
+  --gb-bg1: #3c3836;
+  --gb-bg2: #504945;
+  --gb-fg: #ebdbb2;
+  --gb-fg4: #a89984;
+  --gb-red: #fb4934;
+  --gb-green: #b8bb26;
+  --gb-yellow: #fabd2f;
+  --gb-blue: #83a598;
+  --gb-purple: #d3869b;
+  --gb-aqua: #8ec07c;
+  --gb-orange: #fe8019;
+}
+
 :root {
-  --color-bg: #fbfaf7;
-  --color-surface: #ffffff;
-  --color-text: #1f2328;
-  --color-muted: #5b636d;
-  --color-border: #d8dbe0;
-  --color-accent: #0b6e4f;
-  --color-accent-soft: #e3f2ec;
-  --color-selected: #fff4d6;
-  --color-warn-bg: #fff1d6;
-  --color-warn-text: #7a4a00;
-  --color-info-bg: #e7effa;
-  --color-info-text: #1d4f91;
-  --color-danger: #b42318;
+  --color-bg: var(--gb-page);
+  --color-surface: var(--gb-surface);
+  --color-text: var(--gb-fg);
+  --color-muted: var(--gb-fg4);
+  --color-border: var(--gb-bg2);
+  --color-accent: var(--gb-aqua);
+  --color-accent-soft: color-mix(in srgb, var(--gb-aqua) 15%, var(--gb-surface));
+  --color-selected: color-mix(in srgb, var(--gb-yellow) 16%, var(--gb-surface));
+  --color-selected-border: var(--gb-yellow);
+  --color-warn-bg: color-mix(in srgb, var(--gb-orange) 14%, var(--gb-surface));
+  --color-warn-text: var(--gb-orange);
+  --color-warn-border: color-mix(in srgb, var(--gb-orange) 45%, var(--gb-surface));
+  --color-info-bg: color-mix(in srgb, var(--gb-blue) 14%, var(--gb-surface));
+  --color-info-text: var(--gb-blue);
+  --color-info-border: color-mix(in srgb, var(--gb-blue) 45%, var(--gb-surface));
+  --color-danger: var(--gb-red);
+  --color-tooltip-bg: var(--gb-fg);
+  --color-tooltip-text: var(--gb-surface);
+  --color-marker: var(--gb-aqua);
+  --color-marker-ring: var(--gb-surface);
+  --color-marker-selected: var(--gb-orange);
 
   --space-1: 4px;
   --space-2: 8px;
@@ -21,7 +65,7 @@
   --space-6: 32px;
 
   --radius: 8px;
-  --focus-ring: 0 0 0 3px #1d4f91;
+  --focus-ring: 0 0 0 3px var(--gb-blue);
 
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
@@ -86,4 +130,31 @@ select {
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+/* Leaflet adds these classes, so they are styled globally. */
+.leaflet-container {
+  background: var(--color-bg);
+  font-family: var(--font-sans);
+}
+
+/* OSM tiles only come in light colours; invert them for the dark theme. */
+:root[data-theme="dark"] .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9);
+}
+
+.leaflet-container .leaflet-control-attribution,
+.leaflet-container .leaflet-tooltip,
+.leaflet-container .leaflet-bar a {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.leaflet-container .leaflet-control-attribution a {
+  color: var(--color-info-text);
+}
+
+.leaflet-container .leaflet-tooltip-top::before {
+  border-top-color: var(--color-surface);
 }

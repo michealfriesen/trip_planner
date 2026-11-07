@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import ThemeToggle from "@/components/ThemeToggle/ThemeToggle";
 import styles from "./AppNav.module.css";
 
 const LINKS = [
@@ -28,6 +29,7 @@ export default function AppNav() {
           })}
         </ul>
       </nav>
+      <ThemeToggle />
     </header>
   );
 }
