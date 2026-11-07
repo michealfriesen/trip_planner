@@ -21,3 +21,11 @@
   padding-left: var(--space-4);
   columns: 2 14rem;
 }
+
+.list li {
+  break-inside: avoid;
+}
+
+.hover {
+  display: inline-block;
+}

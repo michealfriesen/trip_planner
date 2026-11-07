@@ -4,12 +4,14 @@ import { useRef, useState } from "react";
 import DayTimeline from "@/components/DayTimeline/DayTimeline";
 import UnscheduledList from "@/components/UnscheduledList/UnscheduledList";
 import type { ItineraryOption } from "@/lib/planner/types";
+import type { PlacePref } from "@/lib/prefs/types";
 import type { Place } from "@/lib/types";
 import styles from "./OptionTabs.module.css";
 
 interface OptionTabsProps {
   options: ItineraryOption[];
   placeById: ReadonlyMap<string, Place>;
+  prefs: Record<string, PlacePref>;
 }
 
 function assumedOpenCount(option: ItineraryOption): number {
@@ -20,7 +22,7 @@ function assumedOpenCount(option: ItineraryOption): number {
 }
 
 /** One tab per itinerary option (WAI-ARIA tabs: arrow keys, Home and End move between tabs). */
-export default function OptionTabs({ options, placeById }: OptionTabsProps) {
+export default function OptionTabs({ options, placeById, prefs }: OptionTabsProps) {
   const [active, setActive] = useState(0);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const current = Math.min(active, options.length - 1);
@@ -81,9 +83,9 @@ export default function OptionTabs({ options, placeById }: OptionTabsProps) {
           </p>
         )}
         {option.days.map((day, i) => (
-          <DayTimeline key={day.date} day={day} dayNumber={i + 1} placeById={placeById} />
+          <DayTimeline key={day.date} day={day} dayNumber={i + 1} placeById={placeById} prefs={prefs} />
         ))}
-        <UnscheduledList unscheduled={option.unscheduled} placeById={placeById} />
+        <UnscheduledList unscheduled={option.unscheduled} placeById={placeById} prefs={prefs} />
       </div>
     </section>
   );

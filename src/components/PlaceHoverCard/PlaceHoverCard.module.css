@@ -1,0 +1,34 @@
+.wrap {
+  position: relative;
+  /* Only the trigger itself opens the card, not empty space beside it. */
+  width: fit-content;
+  max-width: 100%;
+}
+
+/* Padding, not margin, bridges the gap so the pointer can move onto the card without closing it. */
+.card {
+  position: absolute;
+  left: 0;
+  z-index: 20;
+}
+
+.above {
+  bottom: 100%;
+  padding-bottom: var(--space-1);
+}
+
+.below {
+  top: 100%;
+  padding-top: var(--space-1);
+}
+
+.panel {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 400;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
+}

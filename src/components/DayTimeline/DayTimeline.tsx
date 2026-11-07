@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import StopCard from "@/components/StopCard/StopCard";
 import type { DayPlan } from "@/lib/planner/types";
+import type { PlacePref } from "@/lib/prefs/types";
 import type { Place } from "@/lib/types";
 import styles from "./DayTimeline.module.css";
 
@@ -8,6 +9,7 @@ interface DayTimelineProps {
   day: DayPlan;
   dayNumber: number;
   placeById: ReadonlyMap<string, Place>;
+  prefs: Record<string, PlacePref>;
 }
 
 const DATE_FORMAT = new Intl.DateTimeFormat("en-GB", {
@@ -25,7 +27,7 @@ function Leg({ minutes, overnight }: { minutes: number; overnight: boolean }) {
   );
 }
 
-export default function DayTimeline({ day, dayNumber, placeById }: DayTimelineProps) {
+export default function DayTimeline({ day, dayNumber, placeById, prefs }: DayTimelineProps) {
   const heading = `Day ${dayNumber}: ${DATE_FORMAT.format(new Date(`${day.date}T00:00:00Z`))}`;
   return (
     <section className={styles.day} aria-label={heading}>
@@ -39,7 +41,7 @@ export default function DayTimeline({ day, dayNumber, placeById }: DayTimelinePr
             return (
               <Fragment key={stop.placeId}>
                 {stop.travelMinutesBefore > 0 && <Leg minutes={stop.travelMinutesBefore} overnight={i === 0} />}
-                <li>{place && <StopCard stop={stop} place={place} />}</li>
+                <li>{place && <StopCard stop={stop} place={place} pref={prefs[stop.placeId]} />}</li>
               </Fragment>
             );
           })}

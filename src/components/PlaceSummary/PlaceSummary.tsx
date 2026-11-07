@@ -13,7 +13,7 @@ const INTEREST = {
   very: { label: "Very interested", icon: <Heart size={14} aria-hidden="true" fill="currentColor" /> },
 } as const;
 
-/** A read-only, condensed place card, shown when hovering a pin on the full-screen map. */
+/** A read-only, condensed place card, shown when hovering a pin on the full-screen map or a place on the Plan page. */
 export default function PlaceSummary({ place, pref }: { place: Place; pref: PlacePref | undefined }) {
   const where = [place.location.neighborhood, place.location.city].filter(Boolean).join(", ");
   const interest = pref?.interest && INTEREST[pref.interest];

@@ -1,5 +1,7 @@
 import Link from "next/link";
+import PlaceHoverCard from "@/components/PlaceHoverCard/PlaceHoverCard";
 import type { Unscheduled, UnscheduledReason } from "@/lib/planner/types";
+import type { PlacePref } from "@/lib/prefs/types";
 import type { Place } from "@/lib/types";
 import styles from "./UnscheduledList.module.css";
 
@@ -14,10 +16,11 @@ const ORDER: UnscheduledReason[] = ["no_time", "closed_on_trip_days", "location_
 interface UnscheduledListProps {
   unscheduled: Unscheduled[];
   placeById: ReadonlyMap<string, Place>;
+  prefs: Record<string, PlacePref>;
 }
 
 /** Places the traveler is interested in that the plan left out, grouped by reason. */
-export default function UnscheduledList({ unscheduled, placeById }: UnscheduledListProps) {
+export default function UnscheduledList({ unscheduled, placeById, prefs }: UnscheduledListProps) {
   if (unscheduled.length === 0) return null;
   return (
     <section className={styles.box} aria-labelledby="unscheduled-heading">
@@ -31,11 +34,25 @@ export default function UnscheduledList({ unscheduled, placeById }: UnscheduledL
           <div key={reason}>
             <h3 className={styles.reason}>{REASONS[reason]}</h3>
             <ul className={styles.list}>
-              {items.map((u) => (
-                <li key={u.placeId}>
-                  <Link href={`/#place-${u.placeId}`}>{placeById.get(u.placeId)?.name ?? u.placeId}</Link>
-                </li>
-              ))}
+              {items.map((u) => {
+                const place = placeById.get(u.placeId);
+                const href = `/#place-${u.placeId}`;
+                return (
+                  <li key={u.placeId}>
+                    {place ? (
+                      <PlaceHoverCard place={place} pref={prefs[u.placeId]} className={styles.hover}>
+                        {(describedBy) => (
+                          <Link href={href} aria-describedby={describedBy}>
+                            {place.name}
+                          </Link>
+                        )}
+                      </PlaceHoverCard>
+                    ) : (
+                      <Link href={href}>{u.placeId}</Link>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         );

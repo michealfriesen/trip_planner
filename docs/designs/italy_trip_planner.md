@@ -1071,6 +1071,7 @@ Every component is a `.tsx` file with a matching `.module.css` file in `./src/co
 | `./src/components/DayTimeline/*` | create | 4 | An ordered list of `StopCard`s for one date, with a travel leg such as "~25 min (estimated)" between stops. |
 | `./src/components/StopCard/*` | create | 4 | Start and end times, place name, `CategoryIcon`, a must-visit badge, and one `FlagBadge` per `StopWarning`. Shows the raw hours text next to an `…assumed_open` warning, and the seasonal note text below the badges. Day timelines show the overnight leg as "~N min travel (estimated) from where you finished yesterday". |
 | `./src/components/UnscheduledList/*` | create | 4 | Places that didn't fit, grouped under a plain reason, each linking to its card on Discover (`/#place-<id>`). |
+| `./src/components/PlaceHoverCard/*` | create | 4 | Wraps a place link on the Plan page (`StopCard` names and `UnscheduledList` links). On hover or keyboard focus it shows `PlaceSummary` above the link, or below it when there is no room above. The pointer can move onto the card without closing it, Escape closes it, and the link gets `aria-describedby` while it is open (WCAG 1.4.13). |
 
 #### Tests and fixtures
 

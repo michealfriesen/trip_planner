@@ -98,7 +98,9 @@ export default function PlanView({ places }: { places: Place[] }) {
         {!pending && result?.status === "infeasible" && (
           <ConflictList conflicts={result.conflicts} placeById={placeById} />
         )}
-        {!pending && result?.status === "ok" && <OptionTabs options={result.options} placeById={placeById} />}
+        {!pending && result?.status === "ok" && (
+          <OptionTabs options={result.options} placeById={placeById} prefs={prefs.places} />
+        )}
       </div>
     </div>
   );
