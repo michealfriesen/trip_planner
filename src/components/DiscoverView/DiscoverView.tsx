@@ -85,26 +85,62 @@ export default function DiscoverView({ places, fetchedAt, linkedPlaceId }: Disco
 
   // Wait for preferences: loading them can change the shown places, which refits the map and would undo the fly-to.
   const linkApplied = useRef(false);
+  // Bumped when a place is chosen from the map or a Plan link, to bring its card to the middle of the list.
+  // Choosing a card in the list doesn't bump it: that card is already in view.
+  const [reveal, setReveal] = useState<{ id: string; seq: number } | null>(null);
+  const revealCard = useCallback((id: string) => setReveal((r) => ({ id, seq: (r?.seq ?? 0) + 1 })), []);
+  // Keyboard and screen-reader users land on the linked card's title button.
+  const [linkedCardFocus, setLinkedCardFocus] = useState<string | null>(null);
+  const listRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    // Also runs on leaving full screen, so the card chosen there is in view.
+    const list = listRef.current;
+    if (!reveal || mapExpanded || !list) return;
+    const card = list.querySelector<HTMLElement>(`article[data-place-id="${CSS.escape(reveal.id)}"]`);
+    if (!card) return;
+    const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    if (list.scrollHeight > list.clientHeight) {
+      // Scroll only the list pane, never the page, so the map stays where it is.
+      const cardTop = card.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop;
+      list.scrollTo({ top: cardTop - (list.clientHeight - card.offsetHeight) / 2, behavior });
+    } else if (linkedCardFocus === reveal.id) {
+      // Narrow screens: the list is part of the page, so the page scrolls to a linked card. Pin clicks don't
+      // scroll the page, which would move the map out of view.
+      card.scrollIntoView({ block: "center", behavior });
+    }
+  }, [reveal, mapExpanded, linkedCardFocus]);
+
+  useEffect(() => {
+    if (!linkedCardFocus) return;
+    document
+      .querySelector<HTMLElement>(`article[data-place-id="${CSS.escape(linkedCardFocus)}"] h3 button`)
+      ?.focus({ preventScroll: true });
+  }, [linkedCardFocus]);
   useEffect(() => {
     if (!ready || linkApplied.current || !linkedPlaceId) return;
     linkApplied.current = true;
     const place = places.find((p) => p.id === linkedPlaceId);
     if (!place) return;
-    setMapExpanded(true);
     setSelectedId(place.id);
-    setPanelFocusSeq((n) => n + 1);
+    revealCard(place.id);
+    setLinkedCardFocus(place.id);
     const c = usableCoordinates(place);
     if (c) setFocus((prev) => ({ coordinates: c, seq: (prev?.seq ?? 0) + 1 }));
     // Drop the parameter so a reload shows the normal view; keep any others, such as ?debug.
     const url = new URL(window.location.href);
     url.searchParams.delete("place");
     window.history.replaceState(null, "", url);
-  }, [ready, linkedPlaceId, places]);
+  }, [ready, linkedPlaceId, places, revealCard]);
 
-  const selectFromMap = useCallback((id: string, options?: { keyboard: boolean }) => {
-    setSelectedId(id);
-    if (options?.keyboard) setPanelFocusSeq((n) => n + 1);
-  }, []);
+  const selectFromMap = useCallback(
+    (id: string, options?: { keyboard: boolean }) => {
+      setSelectedId(id);
+      revealCard(id);
+      if (options?.keyboard) setPanelFocusSeq((n) => n + 1);
+    },
+    [revealCard],
+  );
 
   function closePanel() {
     const id = selectedId;
@@ -118,6 +154,7 @@ export default function DiscoverView({ places, fetchedAt, linkedPlaceId }: Disco
   // Choosing a card moves the map to it; choosing a marker only selects, since the marker is already in view.
   function selectFromList(id: string) {
     setSelectedId(id);
+    setReveal(null);
     const place = places.find((p) => p.id === id);
     const c = place && usableCoordinates(place);
     if (c) setFocus((prev) => ({ coordinates: c, seq: (prev?.seq ?? 0) + 1 }));
@@ -172,7 +209,12 @@ export default function DiscoverView({ places, fetchedAt, linkedPlaceId }: Disco
           </button>
         </div>
       </section>
-      <section className={styles.listPane} aria-labelledby="places-heading" hidden={mapExpanded}>
+      <section
+        ref={listRef}
+        className={styles.listPane}
+        aria-labelledby="places-heading"
+        hidden={mapExpanded}
+      >
         <div className={styles.summary}>
           <h1 id="places-heading" className={styles.title}>
             Places

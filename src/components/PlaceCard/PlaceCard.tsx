@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import CategoryIcon from "@/components/CategoryIcon/CategoryIcon";
 import { useDebug } from "@/components/Debug/DebugContext";
 import FieldValue from "@/components/FieldValue/FieldValue";
@@ -29,12 +28,7 @@ interface PlaceCardProps {
 }
 
 export default function PlaceCard({ place, pref, prefHandlers, selected, onSelect }: PlaceCardProps) {
-  const ref = useRef<HTMLElement>(null);
   const debug = useDebug();
-
-  useEffect(() => {
-    if (selected) ref.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  }, [selected]);
 
   const { location } = place;
   const where = [location.neighborhood, location.city].filter(Boolean).join(", ");
@@ -49,7 +43,7 @@ export default function PlaceCard({ place, pref, prefHandlers, selected, onSelec
 
   return (
     <article
-      ref={ref}
+      data-place-id={place.id}
       className={`${styles.card} ${selected ? styles.selected : ""}`}
       onClick={handleCardClick}
     >
