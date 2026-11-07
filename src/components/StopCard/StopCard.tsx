@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { placeOnMapHref } from "@/lib/links";
 import CategoryIcon from "@/components/CategoryIcon/CategoryIcon";
 import FlagBadge from "@/components/FlagBadge/FlagBadge";
 import PlaceHoverCard from "@/components/PlaceHoverCard/PlaceHoverCard";
@@ -29,7 +30,7 @@ export default function StopCard({ stop, place, pref }: StopCardProps) {
           {(describedBy) => (
             <h3 className={styles.name}>
               <CategoryIcon category={place.type} />
-              <Link href={`/#place-${place.id}`} aria-describedby={describedBy}>
+              <Link href={placeOnMapHref(place.id)} aria-describedby={describedBy}>
                 {place.name}
               </Link>
               {stop.mustVisit && <span className={styles.mustLabel}>Must-visit</span>}

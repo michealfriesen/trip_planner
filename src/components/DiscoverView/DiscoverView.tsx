@@ -20,9 +20,11 @@ interface DiscoverViewProps {
   /** Shown by the data-quality panel (stage 7). */
   issues: DataIssue[];
   fetchedAt: string;
+  /** Opens this place on the full-screen map once preferences have loaded. */
+  linkedPlaceId?: string;
 }
 
-export default function DiscoverView({ places, fetchedAt }: DiscoverViewProps) {
+export default function DiscoverView({ places, fetchedAt, linkedPlaceId }: DiscoverViewProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [focus, setFocus] = useState<MapFocus | null>(null);
   const [criteria, setCriteria] = useState<FilterCriteria>(EMPTY_CRITERIA);
@@ -68,6 +70,24 @@ export default function DiscoverView({ places, fetchedAt }: DiscoverViewProps) {
   useEffect(() => {
     if (panelFocusSeq > 0) panelRef.current?.focus();
   }, [panelFocusSeq]);
+
+  // Wait for preferences: loading them can change the shown places, which refits the map and would undo the fly-to.
+  const linkApplied = useRef(false);
+  useEffect(() => {
+    if (!ready || linkApplied.current || !linkedPlaceId) return;
+    linkApplied.current = true;
+    const place = places.find((p) => p.id === linkedPlaceId);
+    if (!place) return;
+    setMapExpanded(true);
+    setSelectedId(place.id);
+    setPanelFocusSeq((n) => n + 1);
+    const c = usableCoordinates(place);
+    if (c) setFocus((prev) => ({ coordinates: c, seq: (prev?.seq ?? 0) + 1 }));
+    // Drop the parameter so a reload shows the normal view; keep any others, such as ?debug.
+    const url = new URL(window.location.href);
+    url.searchParams.delete("place");
+    window.history.replaceState(null, "", url);
+  }, [ready, linkedPlaceId, places]);
 
   const selectFromMap = useCallback((id: string, options?: { keyboard: boolean }) => {
     setSelectedId(id);

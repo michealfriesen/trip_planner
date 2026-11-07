@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { placeOnMapHref } from "@/lib/links";
 import PlaceHoverCard from "@/components/PlaceHoverCard/PlaceHoverCard";
 import type { Unscheduled, UnscheduledReason } from "@/lib/planner/types";
 import type { PlacePref } from "@/lib/prefs/types";
@@ -36,7 +37,7 @@ export default function UnscheduledList({ unscheduled, placeById, prefs }: Unsch
             <ul className={styles.list}>
               {items.map((u) => {
                 const place = placeById.get(u.placeId);
-                const href = `/#place-${u.placeId}`;
+                const href = placeOnMapHref(u.placeId);
                 return (
                   <li key={u.placeId}>
                     {place ? (

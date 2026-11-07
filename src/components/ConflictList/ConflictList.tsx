@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { placeOnMapHref } from "@/lib/links";
 import type { Conflict } from "@/lib/planner/types";
 import type { Place } from "@/lib/types";
 import styles from "./ConflictList.module.css";
@@ -21,7 +22,7 @@ export default function ConflictList({ conflicts, placeById }: ConflictListProps
             <p className={styles.message}>{c.message}</p>
             <p className={styles.links}>
               {c.placeIds.map((id) => (
-                <Link key={id} href={`/#place-${id}`}>
+                <Link key={id} href={placeOnMapHref(id)}>
                   {placeById.get(id)?.name ?? id}
                 </Link>
               ))}
