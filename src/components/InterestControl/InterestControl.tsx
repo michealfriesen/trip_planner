@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgeCheck, Heart, HeartCrack } from "lucide-react";
+import { Heart, HeartCrack } from "lucide-react";
 import type { Interest } from "@/lib/prefs/types";
 import styles from "./InterestControl.module.css";
 
@@ -27,16 +27,12 @@ interface InterestControlProps {
   onChange: (interest: Interest | undefined) => void;
 }
 
-/** Toggle buttons rather than radios, so pressing the current level clears it back to Unrated. */
+/**
+ * Toggle buttons rather than radios, so pressing the current level clears it back to Unrated.
+ * Hidden for must-visits: the must-visit toggle beside it already says so, and interest doesn't apply.
+ */
 export default function InterestControl({ placeName, interest, mustVisit, disabled, onChange }: InterestControlProps) {
-  if (mustVisit) {
-    return (
-      <span className={styles.mustVisit}>
-        <BadgeCheck size={16} aria-hidden="true" />
-        Must visit
-      </span>
-    );
-  }
+  if (mustVisit) return null;
 
   const current = LEVELS.find((l) => l.value === interest);
   return (

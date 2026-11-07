@@ -12,6 +12,7 @@ interface PlaceListProps {
   prefHandlers: PrefHandlers;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  emptyText?: string;
 }
 
 export default function PlaceList({
@@ -21,6 +22,7 @@ export default function PlaceList({
   prefHandlers,
   selectedId,
   onSelect,
+  emptyText = "No places match.",
 }: PlaceListProps) {
   const renderCards = (places: Place[]) => (
     <ul className={styles.list}>
@@ -39,7 +41,7 @@ export default function PlaceList({
   );
 
   if (matches.length === 0 && uncertainMatches.length === 0) {
-    return <p className={styles.empty}>No places match.</p>;
+    return <p className={styles.empty}>{emptyText}</p>;
   }
 
   return (

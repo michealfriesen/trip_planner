@@ -10,6 +10,7 @@ import SearchBox from "@/components/SearchBox/SearchBox";
 import SortSelect from "@/components/SortSelect/SortSelect";
 import { usePreferences } from "@/hooks/usePreferences";
 import { EMPTY_CRITERIA, filterOptions, filterPlaces, type FilterCriteria } from "@/lib/discover/filterPlaces";
+import { placesInBounds, type MapBounds } from "@/lib/discover/mapBounds";
 import { sortPlaces, type SortKey } from "@/lib/discover/sortPlaces";
 import { usableCoordinates } from "@/lib/geo";
 import type { DataIssue, Place } from "@/lib/types";
@@ -32,6 +33,9 @@ export default function DiscoverView({ places, fetchedAt, linkedPlaceId }: Disco
   const [searchKey, setSearchKey] = useState(0);
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [mapExpanded, setMapExpanded] = useState(false);
+  // "Update results when map moves": the list and count only include places inside the map's view.
+  const [inViewOnly, setInViewOnly] = useState(false);
+  const [viewBounds, setViewBounds] = useState<MapBounds | null>(null);
   // Bumped when a pin is chosen with the keyboard, to move focus into the panel once it renders.
   const [panelFocusSeq, setPanelFocusSeq] = useState(0);
   const panelRef = useRef<HTMLElement>(null);
@@ -47,6 +51,14 @@ export default function DiscoverView({ places, fetchedAt, linkedPlaceId }: Disco
     };
   }, [places, criteria, sortKey, prefs.places]);
   const shown = useMemo(() => [...matches, ...uncertainMatches], [matches, uncertainMatches]);
+  // The map keeps every pin in `shown`: hiding pins as the map moves would change the pin set, which refits the map.
+  const listed = useMemo(() => {
+    if (!inViewOnly || !viewBounds) return { matches, uncertainMatches };
+    return {
+      matches: placesInBounds(matches, viewBounds),
+      uncertainMatches: placesInBounds(uncertainMatches, viewBounds),
+    };
+  }, [inViewOnly, viewBounds, matches, uncertainMatches]);
 
   const onSearch = useCallback(
     (query: string) => setCriteria((c) => (c.query === query ? c : { ...c, query })),
@@ -117,8 +129,8 @@ export default function DiscoverView({ places, fetchedAt, linkedPlaceId }: Disco
     timeZone: "UTC",
   });
 
-  const countText = `${matches.length} of ${places.length} places${
-    uncertainMatches.length > 0 ? `, ${uncertainMatches.length} may be inaccurate` : ""
+  const countText = `${listed.matches.length} of ${places.length} places${inViewOnly ? " in map view" : ""}${
+    listed.uncertainMatches.length > 0 ? `, ${listed.uncertainMatches.length} may be inaccurate` : ""
   }`;
 
   return (
@@ -131,6 +143,7 @@ export default function DiscoverView({ places, fetchedAt, linkedPlaceId }: Disco
           onSelect={selectFromMap}
           expanded={mapExpanded}
           prefs={prefs.places}
+          onBoundsChange={inViewOnly ? setViewBounds : undefined}
         />
         {selectedPlace && (
           <MapPlacePanel
@@ -142,6 +155,10 @@ export default function DiscoverView({ places, fetchedAt, linkedPlaceId }: Disco
           />
         )}
         <div className={styles.mapControls}>
+          <label className={styles.inViewToggle}>
+            <input type="checkbox" checked={inViewOnly} onChange={(e) => setInViewOnly(e.target.checked)} />
+            Update results when map moves
+          </label>
           {mapExpanded && <p className={styles.mapCount}>{countText}</p>}
           <button
             type="button"
@@ -173,8 +190,9 @@ export default function DiscoverView({ places, fetchedAt, linkedPlaceId }: Disco
           <FilterBar options={options} criteria={criteria} onChange={setCriteria} onClear={clearFilters} />
         </div>
         <PlaceList
-          matches={matches}
-          uncertainMatches={uncertainMatches}
+          matches={listed.matches}
+          uncertainMatches={listed.uncertainMatches}
+          emptyText={inViewOnly ? "No places in this part of the map. Move or zoom out the map." : undefined}
           prefs={prefs.places}
           prefHandlers={prefHandlers}
           selectedId={selectedId}

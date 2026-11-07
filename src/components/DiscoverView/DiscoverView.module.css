@@ -28,14 +28,25 @@
   position: absolute;
   top: var(--space-3);
   right: var(--space-3);
+  /* Clear of the zoom buttons; wraps on narrow maps. */
+  left: 4rem;
   z-index: 1001;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
   gap: var(--space-2);
+  /* The empty part of the row must not block dragging the map. */
+  pointer-events: none;
+}
+
+.mapControls > * {
+  pointer-events: auto;
 }
 
 .mapCount,
-.expandButton {
+.expandButton,
+.inViewToggle {
   padding: var(--space-1) var(--space-3);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -51,8 +62,21 @@
   cursor: pointer;
 }
 
-.expandButton:hover {
+.expandButton:hover,
+.inViewToggle:hover {
   border-color: var(--color-accent);
+}
+
+.inViewToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.inViewToggle input {
+  accent-color: var(--color-accent);
+  cursor: pointer;
 }
 
 .summary {

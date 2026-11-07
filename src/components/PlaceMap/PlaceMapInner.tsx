@@ -1,14 +1,22 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import { divIcon, type DivIcon, type LatLngBoundsLiteral, type LatLngTuple, type Marker as LeafletMarker } from "leaflet";
+import {
+  divIcon,
+  type DivIcon,
+  type LatLngBoundsLiteral,
+  type LatLngTuple,
+  type Map as LeafletMap,
+  type Marker as LeafletMarker,
+} from "leaflet";
 import { useEffect, useMemo, useRef, type ReactElement } from "react";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
-import { MapContainer, Marker, TileLayer, Tooltip, useMap } from "react-leaflet";
+import { MapContainer, Marker, TileLayer, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import { categoryIcon } from "@/components/CategoryIcon/CategoryIcon";
 import PlaceSummary from "@/components/PlaceSummary/PlaceSummary";
 import { ITALY_BOUNDS } from "@/lib/config";
+import type { MapBounds } from "@/lib/discover/mapBounds";
 import { usableCoordinates } from "@/lib/geo";
 import type { PlacePref } from "@/lib/prefs/types";
 import { Category, type Coordinates, type Place } from "@/lib/types";
@@ -29,6 +37,8 @@ export interface PlaceMapProps {
   /** Full-screen mode: pins show a condensed card on hover and can be reached with the keyboard. */
   expanded: boolean;
   prefs: Record<string, PlacePref>;
+  /** When set, called with the visible area now and after every pan, zoom or resize. */
+  onBoundsChange?: (bounds: MapBounds) => void;
 }
 
 interface Pin {
@@ -125,6 +135,25 @@ function ResizeWithContainer() {
   return null;
 }
 
+function boundsOf(map: LeafletMap): MapBounds {
+  const b = map.getBounds();
+  return { south: b.getSouth(), west: b.getWest(), north: b.getNorth(), east: b.getEast() };
+}
+
+function ReportBounds({ onChange }: { onChange: (bounds: MapBounds) => void }) {
+  const map = useMapEvents({
+    moveend: () => onChange(boundsOf(map)),
+    resize: () => onChange(boundsOf(map)),
+  });
+
+  // Report once on mount, so turning the filter on applies to the current view without waiting for a move.
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  useEffect(() => onChangeRef.current(boundsOf(map)), [map]);
+
+  return null;
+}
+
 interface PlaceMarkerProps {
   pin: Pin;
   selected: boolean;
@@ -177,7 +206,15 @@ function PlaceMarker({ pin, selected, expanded, pref, onSelect }: PlaceMarkerPro
   );
 }
 
-export default function PlaceMapInner({ places, selectedId, focus, onSelect, expanded, prefs }: PlaceMapProps) {
+export default function PlaceMapInner({
+  places,
+  selectedId,
+  focus,
+  onSelect,
+  expanded,
+  prefs,
+  onBoundsChange,
+}: PlaceMapProps) {
   const pins = useMemo<Pin[]>(
     () =>
       places.flatMap((p) => {
@@ -196,6 +233,7 @@ export default function PlaceMapInner({ places, selectedId, focus, onSelect, exp
       <FitBounds pins={pins} />
       <FlyToFocus focus={focus} />
       <ResizeWithContainer />
+      {onBoundsChange && <ReportBounds onChange={onBoundsChange} />}
       {pins.map((pin) => (
         <PlaceMarker
           // Leaflet reads `keyboard` only when a marker is created, so switching modes recreates the markers.
