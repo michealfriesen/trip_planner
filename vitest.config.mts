@@ -16,5 +16,11 @@ export default defineConfig({
     environment: "node",
     // Stage 0 has no tests yet; stage 1 adds the first ones.
     passWithNoTests: true,
+    coverage: {
+      provider: "v8",
+      // Unit tests target the logic layer; .tsx components are not parsed by the coverage remapper.
+      include: ["src/lib/**/*.ts", "src/hooks/**/*.ts"],
+      reporter: ["text", "html"],
+    },
   },
 });
