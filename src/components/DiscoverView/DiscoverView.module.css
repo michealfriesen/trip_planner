@@ -12,10 +12,47 @@
 }
 
 .mapPane {
+  position: relative;
   min-height: 400px;
   border-radius: var(--radius);
   overflow: hidden;
   border: 1px solid var(--color-border);
+}
+
+.expanded {
+  grid-template-columns: 1fr;
+}
+
+/* Above Leaflet's panes and controls (z-index up to 1000). */
+.mapControls {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.mapCount,
+.expandButton {
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 25%);
+  font-size: 0.9rem;
+}
+
+.expandButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.expandButton:hover {
+  border-color: var(--color-accent);
 }
 
 .summary {
@@ -65,5 +102,9 @@
 
   .listPane {
     overflow: visible;
+  }
+
+  .expanded .mapPane {
+    height: calc(100vh - 58px - 2 * var(--space-4));
   }
 }

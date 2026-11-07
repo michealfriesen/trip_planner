@@ -1,0 +1,55 @@
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 260px;
+  white-space: normal;
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-2);
+}
+
+.name {
+  font-size: 0.95rem;
+}
+
+.where {
+  color: var(--color-muted);
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+}
+
+.facts:empty {
+  display: none;
+}
+
+.pref {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-accent);
+}
+
+.mustVisit {
+  color: var(--color-marker-selected);
+  font-weight: 600;
+}
+
+.description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  color: var(--color-muted);
+}

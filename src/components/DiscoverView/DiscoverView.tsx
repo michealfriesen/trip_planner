@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { Maximize2, Minimize2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import FilterBar from "@/components/FilterBar/FilterBar";
 import PlaceList from "@/components/PlaceList/PlaceList";
 import PlaceMap, { type MapFocus } from "@/components/PlaceMap/PlaceMap";
@@ -27,6 +28,7 @@ export default function DiscoverView({ places, fetchedAt }: DiscoverViewProps) {
   // Bumped by "Clear filters" to remount the search box with an empty value.
   const [searchKey, setSearchKey] = useState(0);
   const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [mapExpanded, setMapExpanded] = useState(false);
   const { prefs, ready, setInterest, setMustVisit } = usePreferences();
   const prefHandlers = useMemo(() => ({ ready, setInterest, setMustVisit }), [ready, setInterest, setMustVisit]);
 
@@ -50,6 +52,15 @@ export default function DiscoverView({ places, fetchedAt }: DiscoverViewProps) {
     setSearchKey((k) => k + 1);
   }
 
+  useEffect(() => {
+    if (!mapExpanded) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && !e.defaultPrevented) setMapExpanded(false);
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [mapExpanded]);
+
   // Choosing a card moves the map to it; choosing a marker only selects, since the marker is already in view.
   function selectFromList(id: string) {
     setSelectedId(id);
@@ -64,19 +75,42 @@ export default function DiscoverView({ places, fetchedAt }: DiscoverViewProps) {
     timeZone: "UTC",
   });
 
+  const countText = `${matches.length} of ${places.length} places${
+    uncertainMatches.length > 0 ? `, ${uncertainMatches.length} may be inaccurate` : ""
+  }`;
+
   return (
-    <div className={styles.layout}>
+    <div className={`${styles.layout} ${mapExpanded ? styles.expanded : ""}`}>
       <section className={styles.mapPane} aria-label="Map">
-        <PlaceMap places={shown} selectedId={selectedId} focus={focus} onSelect={setSelectedId} />
+        <PlaceMap
+          places={shown}
+          selectedId={selectedId}
+          focus={focus}
+          onSelect={setSelectedId}
+          expanded={mapExpanded}
+          prefs={prefs.places}
+        />
+        <div className={styles.mapControls}>
+          {mapExpanded && <p className={styles.mapCount}>{countText}</p>}
+          <button
+            type="button"
+            className={styles.expandButton}
+            aria-pressed={mapExpanded}
+            title={mapExpanded ? "Exit full screen (Esc)" : "Full screen map"}
+            onClick={() => setMapExpanded((v) => !v)}
+          >
+            {mapExpanded ? <Minimize2 size={16} aria-hidden="true" /> : <Maximize2 size={16} aria-hidden="true" />}
+            {mapExpanded ? "Show list" : "Full screen"}
+          </button>
+        </div>
       </section>
-      <section className={styles.listPane} aria-labelledby="places-heading">
+      <section className={styles.listPane} aria-labelledby="places-heading" hidden={mapExpanded}>
         <div className={styles.summary}>
           <h1 id="places-heading" className={styles.title}>
             Places
           </h1>
           <p role="status" className={styles.count}>
-            {matches.length} of {places.length} places
-            {uncertainMatches.length > 0 && `, ${uncertainMatches.length} may be inaccurate`}
+            {countText}
           </p>
         </div>
         <p className={styles.fetched}>Data as of {fetchedLabel} UTC</p>

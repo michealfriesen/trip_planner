@@ -1,14 +1,16 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import { divIcon, type DivIcon, type LatLngBoundsLiteral, type LatLngTuple } from "leaflet";
-import { useEffect, useMemo, type ReactElement } from "react";
+import { divIcon, type DivIcon, type LatLngBoundsLiteral, type LatLngTuple, type Marker as LeafletMarker } from "leaflet";
+import { useEffect, useMemo, useRef, type ReactElement } from "react";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { MapContainer, Marker, TileLayer, Tooltip, useMap } from "react-leaflet";
 import { categoryIcon } from "@/components/CategoryIcon/CategoryIcon";
+import PlaceSummary from "@/components/PlaceSummary/PlaceSummary";
 import { ITALY_BOUNDS } from "@/lib/config";
 import { usableCoordinates } from "@/lib/geo";
+import type { PlacePref } from "@/lib/prefs/types";
 import { Category, type Coordinates, type Place } from "@/lib/types";
 import styles from "./PlaceMapInner.module.css";
 
@@ -23,12 +25,13 @@ export interface PlaceMapProps {
   selectedId: string | null;
   focus: MapFocus | null;
   onSelect: (id: string) => void;
+  /** Full-screen mode: pins show a condensed card on hover and can be reached with the keyboard. */
+  expanded: boolean;
+  prefs: Record<string, PlacePref>;
 }
 
 interface Pin {
-  id: string;
-  name: string;
-  category: Category;
+  place: Place;
   point: LatLngTuple;
 }
 
@@ -103,14 +106,67 @@ function FlyToFocus({ focus }: { focus: MapFocus | null }) {
   return null;
 }
 
-export default function PlaceMapInner({ places, selectedId, focus, onSelect }: PlaceMapProps) {
+/** Leaflet only measures its container on load, so tell it when the pane is resized (e.g. entering full screen). */
+function ResizeWithContainer() {
+  const map = useMap();
+
+  useEffect(() => {
+    const observer = new ResizeObserver(() => map.invalidateSize());
+    observer.observe(map.getContainer());
+    return () => observer.disconnect();
+  }, [map]);
+
+  return null;
+}
+
+interface PlaceMarkerProps {
+  pin: Pin;
+  selected: boolean;
+  expanded: boolean;
+  pref: PlacePref | undefined;
+  onSelect: (id: string) => void;
+}
+
+function PlaceMarker({ pin, selected, expanded, pref, onSelect }: PlaceMarkerProps) {
+  const ref = useRef<LeafletMarker>(null);
+  const icon = pinIcon(pin.place.type, selected);
+
+  // Leaflet replaces the element whenever the icon changes, so the name is reapplied after each change.
+  useEffect(() => {
+    const el = ref.current?.getElement();
+    if (!el || !expanded) return;
+    el.setAttribute("aria-label", pin.place.name);
+    el.setAttribute("aria-pressed", String(selected));
+  }, [icon, expanded, selected, pin.place.name]);
+
+  return (
+    <Marker
+      ref={ref}
+      position={pin.point}
+      icon={icon}
+      zIndexOffset={selected ? 1000 : 0}
+      // Beside the list, the list is the keyboard path and 100 extra tab stops would get in the way.
+      // In full screen the list is hidden, so the pins take its place.
+      keyboard={expanded}
+      eventHandlers={{ click: () => onSelect(pin.place.id) }}
+    >
+      {expanded ? (
+        <Tooltip direction="top" opacity={1} className={styles.summaryTooltip}>
+          <PlaceSummary place={pin.place} pref={pref} />
+        </Tooltip>
+      ) : (
+        <Tooltip direction="top">{pin.place.name}</Tooltip>
+      )}
+    </Marker>
+  );
+}
+
+export default function PlaceMapInner({ places, selectedId, focus, onSelect, expanded, prefs }: PlaceMapProps) {
   const pins = useMemo<Pin[]>(
     () =>
       places.flatMap((p) => {
         const c = usableCoordinates(p);
-        return c
-          ? [{ id: p.id, name: p.name, category: p.type, point: [c.latitude, c.longitude] as LatLngTuple }]
-          : [];
+        return c ? [{ place: p, point: [c.latitude, c.longitude] as LatLngTuple }] : [];
       }),
     [places],
   );
@@ -123,22 +179,18 @@ export default function PlaceMapInner({ places, selectedId, focus, onSelect }: P
       />
       <FitBounds pins={pins} />
       <FlyToFocus focus={focus} />
-      {pins.map((pin) => {
-        const selected = pin.id === selectedId;
-        return (
-          <Marker
-            key={pin.id}
-            position={pin.point}
-            icon={pinIcon(pin.category, selected)}
-            zIndexOffset={selected ? 1000 : 0}
-            // The list is the keyboard path; 100 extra tab stops on the map would get in the way.
-            keyboard={false}
-            eventHandlers={{ click: () => onSelect(pin.id) }}
-          >
-            <Tooltip direction="top">{pin.name}</Tooltip>
-          </Marker>
-        );
-      })}
+      <ResizeWithContainer />
+      {pins.map((pin) => (
+        <PlaceMarker
+          // Leaflet reads `keyboard` only when a marker is created, so switching modes recreates the markers.
+          key={`${pin.place.id}:${expanded}`}
+          pin={pin}
+          selected={pin.place.id === selectedId}
+          expanded={expanded}
+          pref={prefs[pin.place.id]}
+          onSelect={onSelect}
+        />
+      ))}
     </MapContainer>
   );
 }
