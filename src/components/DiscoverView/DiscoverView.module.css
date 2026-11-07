@@ -39,6 +39,13 @@
   margin-bottom: var(--space-3);
 }
 
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
 @media (max-width: 800px) {
   .layout {
     grid-template-columns: 1fr;

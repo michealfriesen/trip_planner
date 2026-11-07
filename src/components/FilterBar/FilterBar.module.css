@@ -1,0 +1,111 @@
+.bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.group {
+  position: relative;
+}
+
+.summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary::after {
+  content: "▾";
+  font-size: 0.8em;
+  color: var(--color-muted);
+}
+
+.group[open] > .summary {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.count {
+  min-width: 1.4em;
+  padding: 0 var(--space-1);
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: var(--color-surface);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.panel {
+  position: absolute;
+  z-index: 1100;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 200px;
+  max-height: 320px;
+  overflow-y: auto;
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 20%);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.option input {
+  accent-color: var(--color-accent);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: 0.9rem;
+}
+
+.clear {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.clear:hover:not(:disabled) {
+  border-color: var(--color-accent);
+}
+
+.clear:disabled {
+  color: var(--color-muted);
+  cursor: default;
+}
