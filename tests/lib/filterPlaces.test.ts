@@ -19,14 +19,15 @@ describe("filterPlaces", () => {
     vi.restoreAllMocks();
   });
 
-  it("matches without regard to accents or case, name matches first", () => {
+  it("matches name, description and tags without regard to accents or case", () => {
     const places = [
       makePlace({ id: "a", name: "Zeta Bar", description: "Great caffè and pastries." }),
       makePlace({ id: "b", name: "Caffè Florian" }),
       makePlace({ id: "c", name: "Museo", description: "No coffee here." }),
+      makePlace({ id: "d", name: "Bar Centrale", tags: ["caffe"] }),
     ];
     const { matches } = filterPlaces(places, criteria({ query: "CAFFE" }), {});
-    expect(matches.map((p) => p.id)).toEqual(["b", "a"]);
+    expect(matches.map((p) => p.id)).toEqual(["d", "b", "a"]);
   });
 
   it("puts a place with missing price in uncertainMatches only when the other filters pass", () => {

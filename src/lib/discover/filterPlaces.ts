@@ -89,14 +89,7 @@ function byName(a: Place, b: Place): number {
   return a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
 }
 
-/** Name matches first, then other matches, each by name. With an empty query, everything by name. */
-function sortForQuery(places: Place[], foldedQuery: string): Place[] {
-  if (foldedQuery === "") return [...places].sort(byName);
-  const nameHits = places.filter((p) => foldText(p.name).includes(foldedQuery)).sort(byName);
-  const otherHits = places.filter((p) => !foldText(p.name).includes(foldedQuery)).sort(byName);
-  return [...nameHits, ...otherHits];
-}
-
+/** Both lists come back sorted by name; the view applies the traveler's chosen sort with sortPlaces. */
 export function filterPlaces(
   places: Place[],
   criteria: FilterCriteria,
@@ -122,5 +115,5 @@ export function filterPlaces(
     (verdicts.includes("uncertain") ? uncertainMatches : matches).push(place);
   }
 
-  return { matches: sortForQuery(matches, query), uncertainMatches: sortForQuery(uncertainMatches, query) };
+  return { matches: matches.sort(byName), uncertainMatches: uncertainMatches.sort(byName) };
 }
