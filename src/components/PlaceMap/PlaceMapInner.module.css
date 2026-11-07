@@ -14,20 +14,52 @@
 }
 
 .badge {
+  /* Set per rating level below. --pin-rings is a box-shadow list drawn outside the white border. */
+  --pin-fill: var(--color-marker);
+  --pin-rings: 0 0 0 0 transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: var(--color-marker);
+  background: var(--pin-fill);
   color: var(--color-marker-ring);
   border: 2px solid var(--color-marker-ring);
-  box-shadow: 0 1px 3px rgb(0 0 0 / 35%);
+  box-shadow:
+    var(--pin-rings),
+    0 1px 3px rgb(0 0 0 / 35%);
   transition:
     background-color 150ms ease,
     width 150ms ease,
     height 150ms ease;
+}
+
+.not_interested .badge {
+  --pin-fill: var(--color-marker-muted);
+  opacity: 0.8;
+}
+
+.maybe .badge,
+.very .badge,
+.must .badge {
+  --pin-fill: var(--color-marker-heart);
+}
+
+/* Double border: white, then red. */
+.very .badge {
+  --pin-rings:
+    0 0 0 2px var(--color-marker-heart),
+    0 0 0 3px var(--color-marker-ring);
+}
+
+/* Triple border: white, red, white, red. */
+.must .badge {
+  --pin-rings:
+    0 0 0 2px var(--color-marker-heart),
+    0 0 0 4px var(--color-marker-ring),
+    0 0 0 6px var(--color-marker-heart),
+    0 0 0 7px var(--color-marker-ring);
 }
 
 .pin:hover .badge {
@@ -35,14 +67,19 @@
   height: 28px;
 }
 
+/* Selection changes size and fill, and keeps the rating's rings. Unringed pins get one ring so they still stand out. */
 .selected .badge,
 .selected:hover .badge {
   width: 32px;
   height: 32px;
-  background: var(--color-marker-selected);
+  --pin-fill: var(--color-marker-selected);
   box-shadow:
-    0 0 0 2px var(--color-marker-selected),
+    var(--pin-rings),
     0 1px 4px rgb(0 0 0 / 45%);
+}
+
+.selected:is(.plain, .not_interested, .maybe) .badge {
+  --pin-rings: 0 0 0 2px var(--color-marker-selected);
 }
 
 @media (prefers-reduced-motion: reduce) {

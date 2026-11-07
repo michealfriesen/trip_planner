@@ -56,6 +56,8 @@
   --color-marker: var(--gb-aqua);
   --color-marker-ring: var(--gb-surface);
   --color-marker-selected: var(--gb-orange);
+  --color-marker-heart: var(--gb-red);
+  --color-marker-muted: var(--gb-fg4);
 
   --space-1: 4px;
   --space-2: 8px;

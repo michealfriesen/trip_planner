@@ -67,26 +67,53 @@ function toMarkup(element: ReactElement): string {
   return html;
 }
 
-function makePinIcon(category: Category, selected: boolean): DivIcon {
-  const Icon = categoryIcon(category);
-  const svg = toMarkup(<Icon size={selected ? 18 : 14} strokeWidth={2.25} aria-hidden="true" />);
-  return divIcon({
-    className: `${styles.pin} ${selected ? styles.selected : ""}`,
-    html: `<span class="${styles.badge}">${svg}</span>`,
-    iconSize: [ICON_BOX, ICON_BOX],
-    iconAnchor: [ICON_BOX / 2, ICON_BOX / 2],
-    tooltipAnchor: [0, -ICON_BOX / 2 + 4],
-  });
+/** How a pin shows the traveler's rating. Must-visit outranks interest, as everywhere else. */
+type PinLevel = "plain" | "not_interested" | "maybe" | "very" | "must";
+
+function pinLevel(pref: PlacePref | undefined): PinLevel {
+  if (pref?.mustVisit) return "must";
+  return pref?.interest ?? "plain";
 }
 
-// Built once when the module loads, before any render.
-const PIN_ICONS = new Map(
-  Object.values(Category).map((c) => [c, { normal: makePinIcon(c, false), selected: makePinIcon(c, true) }]),
+/** Read after the place name, since colour and rings alone don't reach screen readers. */
+const LEVEL_LABEL: Record<PinLevel, string> = {
+  plain: "",
+  not_interested: ", not interested",
+  maybe: ", maybe",
+  very: ", very interested",
+  must: ", must visit",
+};
+
+// Rated pins draw above unrated ones; the selected pin above all.
+const LEVEL_Z: Record<PinLevel, number> = { plain: 0, not_interested: -100, maybe: 100, very: 200, must: 300 };
+
+// The icon SVG depends only on category and size, so render each once when the module loads, before any render.
+const PIN_SVGS = new Map(
+  Object.values(Category).map((c) => {
+    const Icon = categoryIcon(c);
+    const svg = (size: number) => toMarkup(<Icon size={size} strokeWidth={2.25} aria-hidden="true" />);
+    return [c, { normal: svg(14), selected: svg(18) }];
+  }),
 );
 
-function pinIcon(category: Category, selected: boolean): DivIcon {
-  const icons = PIN_ICONS.get(category)!;
-  return selected ? icons.selected : icons.normal;
+const pinIcons = new Map<string, DivIcon>();
+
+// Icons are cached so an unchanged pin keeps the same icon object and Leaflet doesn't rebuild its element.
+function pinIcon(category: Category, selected: boolean, level: PinLevel): DivIcon {
+  const key = `${category}:${selected}:${level}`;
+  let icon = pinIcons.get(key);
+  if (!icon) {
+    const svgs = PIN_SVGS.get(category)!;
+    icon = divIcon({
+      className: `${styles.pin} ${styles[level]} ${selected ? styles.selected : ""}`,
+      html: `<span class="${styles.badge}">${selected ? svgs.selected : svgs.normal}</span>`,
+      iconSize: [ICON_BOX, ICON_BOX],
+      iconAnchor: [ICON_BOX / 2, ICON_BOX / 2],
+      tooltipAnchor: [0, -ICON_BOX / 2 + 4],
+    });
+    pinIcons.set(key, icon);
+  }
+  return icon;
 }
 
 function FitBounds({ pins }: { pins: Pin[] }) {
@@ -164,23 +191,25 @@ interface PlaceMarkerProps {
 
 function PlaceMarker({ pin, selected, expanded, pref, onSelect }: PlaceMarkerProps) {
   const ref = useRef<LeafletMarker>(null);
-  const icon = pinIcon(pin.place.type, selected);
+  const level = pinLevel(pref);
+  const icon = pinIcon(pin.place.type, selected, level);
+  const label = pin.place.name + LEVEL_LABEL[level];
 
   // Leaflet replaces the element whenever the icon changes, so the attributes are reapplied after each change.
   useEffect(() => {
     const el = ref.current?.getElement();
     if (!el || !expanded) return;
-    el.setAttribute("aria-label", pin.place.name);
+    el.setAttribute("aria-label", label);
     el.setAttribute("aria-pressed", String(selected));
     el.dataset.placeId = pin.place.id;
-  }, [icon, expanded, selected, pin.place.name, pin.place.id]);
+  }, [icon, expanded, selected, label, pin.place.id]);
 
   return (
     <Marker
       ref={ref}
       position={pin.point}
       icon={icon}
-      zIndexOffset={selected ? 1000 : 0}
+      zIndexOffset={selected ? 1000 : LEVEL_Z[level]}
       // Beside the list, the list is the keyboard path and 100 extra tab stops would get in the way.
       // In full screen the list is hidden, so the pins take its place.
       keyboard={expanded}
