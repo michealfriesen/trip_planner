@@ -9,7 +9,7 @@ export const SORT_OPTIONS: readonly { key: SortKey; label: string }[] = [
   { key: "price_asc", label: "Price (low to high)" },
   { key: "price_desc", label: "Price (high to low)" },
   { key: "interest", label: "My interest" },
-  { key: "duration", label: "Visit length (short to long)" },
+  { key: "duration", label: "Time needed (short to long)" },
 ];
 
 function byName(a: Place, b: Place): number {

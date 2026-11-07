@@ -113,7 +113,7 @@ export default function PlaceCard({ place, pref, prefHandlers, selected, onSelec
           </dd>
         </div>
         <div>
-          <dt>Visit</dt>
+          <dt>Time needed</dt>
           <dd>
             <FieldValue field={place.durationMinutes} showMissing render={(m) => `${m} min`} />
           </dd>
@@ -124,16 +124,15 @@ export default function PlaceCard({ place, pref, prefHandlers, selected, onSelec
             <HoursValue hours={place.hours} />
           </dd>
         </div>
-        <div>
-          <dt>Booking</dt>
-          <dd>
-            <FieldValue
-              field={place.bookingRequired}
-              showMissing
-              render={(b) => (b ? "Required" : "Not needed")}
-            />
-          </dd>
-        </div>
+        {/* Only worth a line when booking is needed, or when the data doesn't say. */}
+        {!(place.bookingRequired.status === "ok" && !place.bookingRequired.value) && (
+          <div>
+            <dt>Booking</dt>
+            <dd>
+              <FieldValue field={place.bookingRequired} showMissing render={() => "Required"} />
+            </dd>
+          </div>
+        )}
       </dl>
 
       {place.description && <p className={styles.description}>{place.description}</p>}
