@@ -33,6 +33,10 @@ export function categoryLabel(category: Category): string {
   return CATEGORY_DISPLAY[category].label;
 }
 
+export function categoryIcon(category: Category): LucideIcon {
+  return CATEGORY_DISPLAY[category].Icon;
+}
+
 export default function CategoryIcon({ category }: { category: Category }) {
   const { Icon, label } = CATEGORY_DISPLAY[category];
   return (

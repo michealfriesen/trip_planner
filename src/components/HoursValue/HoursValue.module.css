@@ -1,58 +1,12 @@
 .hours {
   display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
+  flex-direction: column;
 }
 
-.unknown {
-  color: var(--color-muted);
-  font-style: italic;
-}
-
-.badge {
-  display: inline-block;
-  padding: 0 var(--space-2);
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.info {
-  background: var(--color-info-bg);
+.debug {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.75rem;
+  font-family: ui-monospace, monospace;
   color: var(--color-info-text);
-  cursor: help;
-}
-
-.warn {
-  background: var(--color-warn-bg);
-  color: var(--color-warn-text);
-}
-
-.tipWrap {
-  position: relative;
-}
-
-.tip {
-  display: none;
-  position: absolute;
-  z-index: 1000;
-  left: 0;
-  top: calc(100% + var(--space-1));
-  width: max-content;
-  max-width: 320px;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius);
-  background: var(--color-tooltip-bg);
-  color: var(--color-tooltip-text);
-  font-size: 0.8rem;
-}
-
-.tipWrap:hover .tip,
-.tipWrap:focus-within .tip {
-  display: block;
-}
-
-.tipLine {
-  display: block;
 }

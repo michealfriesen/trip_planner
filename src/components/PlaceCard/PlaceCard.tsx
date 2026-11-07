@@ -2,11 +2,13 @@
 
 import { useEffect, useRef } from "react";
 import CategoryIcon from "@/components/CategoryIcon/CategoryIcon";
+import { useDebug } from "@/components/Debug/DebugContext";
 import FieldValue from "@/components/FieldValue/FieldValue";
 import FlagBadge from "@/components/FlagBadge/FlagBadge";
 import HoursValue from "@/components/HoursValue/HoursValue";
 import InterestControl from "@/components/InterestControl/InterestControl";
 import MustVisitToggle from "@/components/MustVisitToggle/MustVisitToggle";
+import Suspect from "@/components/Suspect/Suspect";
 import type { Interest, PlacePref } from "@/lib/prefs/types";
 import type { Place } from "@/lib/types";
 import styles from "./PlaceCard.module.css";
@@ -28,6 +30,7 @@ interface PlaceCardProps {
 
 export default function PlaceCard({ place, pref, prefHandlers, selected, onSelect }: PlaceCardProps) {
   const ref = useRef<HTMLElement>(null);
+  const debug = useDebug();
 
   useEffect(() => {
     if (selected) ref.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -61,7 +64,13 @@ export default function PlaceCard({ place, pref, prefHandlers, selected, onSelec
             {place.name}
           </button>
         </h3>
-        <CategoryIcon category={place.type} />
+        {place.flags.includes("type_unknown") ? (
+          <Suspect reasons={["Not a type we know."]}>
+            <CategoryIcon category={place.type} />
+          </Suspect>
+        ) : (
+          <CategoryIcon category={place.type} />
+        )}
       </header>
 
       <div className={styles.prefs}>
@@ -144,7 +153,7 @@ export default function PlaceCard({ place, pref, prefHandlers, selected, onSelec
         </ul>
       )}
 
-      {place.flags.length > 0 && (
+      {debug && place.flags.length > 0 && (
         <ul className={styles.flags} aria-label="Data warnings">
           {place.flags.map((f) => (
             <li key={f}>

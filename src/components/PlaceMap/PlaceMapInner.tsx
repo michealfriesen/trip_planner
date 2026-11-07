@@ -1,12 +1,15 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import { divIcon, type LatLngBoundsLiteral, type LatLngTuple } from "leaflet";
-import { useEffect, useMemo } from "react";
+import { divIcon, type DivIcon, type LatLngBoundsLiteral, type LatLngTuple } from "leaflet";
+import { useEffect, useMemo, type ReactElement } from "react";
+import { flushSync } from "react-dom";
+import { createRoot } from "react-dom/client";
 import { MapContainer, Marker, TileLayer, Tooltip, useMap } from "react-leaflet";
+import { categoryIcon } from "@/components/CategoryIcon/CategoryIcon";
 import { ITALY_BOUNDS } from "@/lib/config";
 import { usableCoordinates } from "@/lib/geo";
-import type { Coordinates, Place } from "@/lib/types";
+import { Category, type Coordinates, type Place } from "@/lib/types";
 import styles from "./PlaceMapInner.module.css";
 
 /** A request to move the map to a place. `seq` changes on every request, so choosing the same place again still moves. */
@@ -25,6 +28,7 @@ export interface PlaceMapProps {
 interface Pin {
   id: string;
   name: string;
+  category: Category;
   point: LatLngTuple;
 }
 
@@ -34,18 +38,42 @@ const COUNTRY_BOUNDS: LatLngBoundsLiteral = [[...ITALY_BOUNDS[0]], [...ITALY_BOU
 const FOCUS_ZOOM = 14;
 
 // HTML markers keep their pixel size while the map zooms; SVG circles are stretched until the zoom ends.
-const ICON_SIZE = 24;
-function makeIcon(selected: boolean) {
+// The box is sized for the selected pin so both states share one anchor.
+const ICON_BOX = 36;
+
+// Leaflet wants marker HTML as a string. This module only runs in the browser (ssr: false), so render with
+// react-dom/client, which is already loaded, instead of pulling react-dom/server into the bundle.
+// Must run outside a React render, because flushSync cannot flush while React is rendering.
+function toMarkup(element: ReactElement): string {
+  const host = document.createElement("div");
+  const root = createRoot(host);
+  flushSync(() => root.render(element));
+  const html = host.innerHTML;
+  root.unmount();
+  return html;
+}
+
+function makePinIcon(category: Category, selected: boolean): DivIcon {
+  const Icon = categoryIcon(category);
+  const svg = toMarkup(<Icon size={selected ? 18 : 14} strokeWidth={2.25} aria-hidden="true" />);
   return divIcon({
     className: `${styles.pin} ${selected ? styles.selected : ""}`,
-    html: `<span class="${styles.dot}"></span>`,
-    iconSize: [ICON_SIZE, ICON_SIZE],
-    iconAnchor: [ICON_SIZE / 2, ICON_SIZE / 2],
-    tooltipAnchor: [0, -ICON_SIZE / 2],
+    html: `<span class="${styles.badge}">${svg}</span>`,
+    iconSize: [ICON_BOX, ICON_BOX],
+    iconAnchor: [ICON_BOX / 2, ICON_BOX / 2],
+    tooltipAnchor: [0, -ICON_BOX / 2 + 4],
   });
 }
-const PIN_ICON = makeIcon(false);
-const SELECTED_ICON = makeIcon(true);
+
+// Built once when the module loads, before any render.
+const PIN_ICONS = new Map(
+  Object.values(Category).map((c) => [c, { normal: makePinIcon(c, false), selected: makePinIcon(c, true) }]),
+);
+
+function pinIcon(category: Category, selected: boolean): DivIcon {
+  const icons = PIN_ICONS.get(category)!;
+  return selected ? icons.selected : icons.normal;
+}
 
 function FitBounds({ pins }: { pins: Pin[] }) {
   const map = useMap();
@@ -80,7 +108,9 @@ export default function PlaceMapInner({ places, selectedId, focus, onSelect }: P
     () =>
       places.flatMap((p) => {
         const c = usableCoordinates(p);
-        return c ? [{ id: p.id, name: p.name, point: [c.latitude, c.longitude] as LatLngTuple }] : [];
+        return c
+          ? [{ id: p.id, name: p.name, category: p.type, point: [c.latitude, c.longitude] as LatLngTuple }]
+          : [];
       }),
     [places],
   );
@@ -99,7 +129,7 @@ export default function PlaceMapInner({ places, selectedId, focus, onSelect }: P
           <Marker
             key={pin.id}
             position={pin.point}
-            icon={selected ? SELECTED_ICON : PIN_ICON}
+            icon={pinIcon(pin.category, selected)}
             zIndexOffset={selected ? 1000 : 0}
             // The list is the keyboard path; 100 extra tab stops on the map would get in the way.
             keyboard={false}

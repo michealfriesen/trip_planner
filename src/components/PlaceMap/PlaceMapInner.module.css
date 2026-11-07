@@ -4,7 +4,7 @@
   min-height: 400px;
 }
 
-/* The icon box is positioned by Leaflet (it sets `transform`), so all visuals live on the inner dot. */
+/* The icon box is positioned by Leaflet (it sets `transform`), so all visuals live on the inner badge. */
 .pin:global(.leaflet-div-icon) {
   display: flex;
   align-items: center;
@@ -13,12 +13,15 @@
   border: 0;
 }
 
-.dot {
-  display: block;
-  width: 12px;
-  height: 12px;
+.badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: var(--color-marker);
+  color: var(--color-marker-ring);
   border: 2px solid var(--color-marker-ring);
   box-shadow: 0 1px 3px rgb(0 0 0 / 35%);
   transition:
@@ -27,24 +30,23 @@
     height 150ms ease;
 }
 
-.pin:hover .dot {
-  width: 16px;
-  height: 16px;
+.pin:hover .badge {
+  width: 28px;
+  height: 28px;
 }
 
-.selected .dot,
-.selected:hover .dot {
-  width: 18px;
-  height: 18px;
+.selected .badge,
+.selected:hover .badge {
+  width: 32px;
+  height: 32px;
   background: var(--color-marker-selected);
-  border-width: 3px;
   box-shadow:
     0 0 0 2px var(--color-marker-selected),
     0 1px 4px rgb(0 0 0 / 45%);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dot {
+  .badge {
     transition: none;
   }
 }

@@ -1,6 +1,8 @@
+"use client";
+
 import type { ReactNode } from "react";
+import Suspect from "@/components/Suspect/Suspect";
 import type { Field } from "@/lib/types";
-import styles from "./FieldValue.module.css";
 
 interface FieldValueProps<T> {
   field: Field<T>;
@@ -14,16 +16,8 @@ export default function FieldValue<T>({ field, render, showMissing = false }: Fi
     case "ok":
       return <>{render(field.value)}</>;
     case "missing":
-      return showMissing ? <span className={styles.unknown}>Unknown</span> : null;
+      return showMissing ? <Suspect reasons={["Not in the source data."]}>Unknown</Suspect> : null;
     case "invalid":
-      return (
-        <span>
-          {field.raw}{" "}
-          <span className={styles.inaccurate} title={field.reason}>
-            may be inaccurate
-            <span className="visually-hidden">: {field.reason}</span>
-          </span>
-        </span>
-      );
+      return <Suspect reasons={[field.reason]}>{field.raw}</Suspect>;
   }
 }
