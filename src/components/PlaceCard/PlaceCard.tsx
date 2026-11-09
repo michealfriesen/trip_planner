@@ -44,7 +44,9 @@ export default function PlaceCard({ place, pref, prefHandlers, selected, onSelec
   return (
     <article
       data-place-id={place.id}
-      className={`${styles.card} ${selected ? styles.selected : ""}`}
+      className={`${styles.card} ${selected ? styles.selected : ""} ${
+        pref?.interest === "not_interested" ? styles.notInterested : ""
+      }`}
       onClick={handleCardClick}
     >
       <header className={styles.header}>

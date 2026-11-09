@@ -28,6 +28,20 @@
   border-color: var(--color-selected-border);
 }
 
+/* Only visible with "Show not interested" on: a dashed outline sets these places apart. */
+.card.notInterested {
+  border-style: dashed;
+  border-color: var(--color-muted);
+}
+
+.card.notInterested:hover {
+  border-color: var(--color-accent);
+}
+
+.card.notInterested.selected {
+  border-color: var(--color-selected-border);
+}
+
 .header {
   display: flex;
   flex-wrap: wrap;
