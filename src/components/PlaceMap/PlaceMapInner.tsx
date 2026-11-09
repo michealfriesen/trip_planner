@@ -39,6 +39,11 @@ export interface PlaceMapProps {
   prefs: Record<string, PlacePref>;
   /** When set, called with the visible area now and after every pan, zoom or resize. */
   onBoundsChange?: (bounds: MapBounds) => void;
+  /**
+   * When set, the map refits to the pins only when this value changes, instead of whenever the set of pins changes.
+   * Lets a caller hide pins (e.g. a place marked not interested) without moving the map.
+   */
+  fitKey?: string;
 }
 
 interface Pin {
@@ -116,10 +121,11 @@ function pinIcon(category: Category, selected: boolean, level: PinLevel): DivIco
   return icon;
 }
 
-function FitBounds({ pins }: { pins: Pin[] }) {
+function FitBounds({ pins, fitKey }: { pins: Pin[]; fitKey?: string }) {
   const map = useMap();
   // Refit only when the set of places changes, not when the same places are re-sorted or a rating changes.
   const placeSet = useMemo(() => pins.map((p) => p.place.id).sort().join(","), [pins]);
+  const trigger = fitKey ?? placeSet;
   const pinsRef = useRef(pins);
   pinsRef.current = pins;
 
@@ -128,7 +134,7 @@ function FitBounds({ pins }: { pins: Pin[] }) {
     if (current.length === 0) map.fitBounds(COUNTRY_BOUNDS);
     else if (current.length === 1) map.setView(current[0].point, 13);
     else map.fitBounds(current.map((p) => p.point), { padding: [24, 24] });
-  }, [map, placeSet]);
+  }, [map, trigger]);
 
   return null;
 }
@@ -243,6 +249,7 @@ export default function PlaceMapInner({
   expanded,
   prefs,
   onBoundsChange,
+  fitKey,
 }: PlaceMapProps) {
   const pins = useMemo<Pin[]>(
     () =>
@@ -259,7 +266,7 @@ export default function PlaceMapInner({
         url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution="&copy; OpenStreetMap contributors"
       />
-      <FitBounds pins={pins} />
+      <FitBounds pins={pins} fitKey={fitKey} />
       <FlyToFocus focus={focus} />
       <ResizeWithContainer />
       {onBoundsChange && <ReportBounds onChange={onBoundsChange} />}

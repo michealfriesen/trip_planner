@@ -53,6 +53,12 @@ export default function DiscoverView({ places, fetchedAt, linkedPlaceId }: Disco
     };
   }, [places, criteria, sortKey, prefs.places]);
   const shown = useMemo(() => [...matches, ...uncertainMatches], [matches, uncertainMatches]);
+  // Refit the map when the filters change or saved ratings first load. Not when a rating hides a place, or when
+  // not-interested places are shown or hidden.
+  const fitKey = useMemo(
+    () => `${ready}:${JSON.stringify({ ...criteria, showNotInterested: undefined })}`,
+    [ready, criteria],
+  );
   // The map keeps every pin in `shown`: hiding pins as the map moves would change the pin set, which refits the map.
   const listed = useMemo(() => {
     if (!inViewOnly || !viewBounds) return { matches, uncertainMatches };
@@ -183,6 +189,7 @@ export default function DiscoverView({ places, fetchedAt, linkedPlaceId }: Disco
           expanded={mapExpanded}
           prefs={prefs.places}
           onBoundsChange={inViewOnly ? setViewBounds : undefined}
+          fitKey={fitKey}
         />
         {selectedPlace && (
           <MapPlacePanel
