@@ -9,13 +9,15 @@ export interface FilterCriteria {
   cities: string[];
   prices: Price[];
   tags: string[];
+  /** Lowest dataset rating to show, or null for any. */
+  minRating: number | null;
   query: string;
   showNotInterested: boolean;
 }
 
 export interface FilterResult {
   matches: Place[];
-  /** Pass every filter except that a tested field (city or price) is missing or invalid. */
+  /** Pass every filter except that a tested field (city, price or rating) is missing or invalid. */
   uncertainMatches: Place[];
 }
 
@@ -24,6 +26,7 @@ export const EMPTY_CRITERIA: FilterCriteria = {
   cities: [],
   prices: [],
   tags: [],
+  minRating: null,
   query: "",
   showNotInterested: false,
 };
@@ -85,6 +88,12 @@ function priceVerdict(place: Place, prices: Price[]): Verdict {
   return prices.includes(place.price.value) ? "pass" : "fail";
 }
 
+function ratingVerdict(place: Place, minRating: number | null): Verdict {
+  if (minRating === null) return "pass";
+  if (place.rating === undefined) return "uncertain";
+  return place.rating >= minRating ? "pass" : "fail";
+}
+
 function byName(a: Place, b: Place): number {
   return a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
 }
@@ -110,7 +119,11 @@ export function filterPlaces(
       if (!haystack.some((s) => s.includes(query))) continue;
     }
 
-    const verdicts = [cityVerdict(place, criteria.cities), priceVerdict(place, criteria.prices)];
+    const verdicts = [
+      cityVerdict(place, criteria.cities),
+      priceVerdict(place, criteria.prices),
+      ratingVerdict(place, criteria.minRating),
+    ];
     if (verdicts.includes("fail")) continue;
     (verdicts.includes("uncertain") ? uncertainMatches : matches).push(place);
   }

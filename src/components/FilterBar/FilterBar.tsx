@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { categoryLabel } from "@/components/CategoryIcon/CategoryIcon";
-import { CATEGORY_GROUPS } from "@/lib/config";
+import { CATEGORY_GROUPS, MIN_RATING_OPTIONS } from "@/lib/config";
 import type { FilterCriteria, FilterOptions } from "@/lib/discover/filterPlaces";
 import type { Category, Price } from "@/lib/types";
 import styles from "./FilterBar.module.css";
@@ -50,6 +50,27 @@ function CheckboxGroup<T extends string | number>({ legend, values, selected, la
   );
 }
 
+function RatingGroup({ value, onChange }: { value: number | null; onChange: (value: number | null) => void }) {
+  const choices: (number | null)[] = [null, ...MIN_RATING_OPTIONS];
+  return (
+    <details name="filter" className={styles.group}>
+      <summary className={styles.summary}>
+        Rating
+        {value !== null && <span className={styles.count}>{value.toFixed(1)}+</span>}
+      </summary>
+      <fieldset className={styles.panel}>
+        <legend className="visually-hidden">Minimum rating</legend>
+        {choices.map((r) => (
+          <label key={r ?? "any"} className={styles.option}>
+            <input type="radio" name="min-rating" checked={value === r} onChange={() => onChange(r)} />
+            {r === null ? "Any" : `${r.toFixed(1)}+ ★`}
+          </label>
+        ))}
+      </fieldset>
+    </details>
+  );
+}
+
 export default function FilterBar({ options, criteria, onChange, onClear }: FilterBarProps) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -77,6 +98,7 @@ export default function FilterBar({ options, criteria, onChange, onClear }: Filt
   const active =
     criteria.categoryGroups.length + criteria.cities.length + criteria.prices.length + criteria.tags.length > 0 ||
     criteria.query.trim() !== "" ||
+    criteria.minRating !== null ||
     criteria.showNotInterested;
 
   return (
@@ -108,6 +130,7 @@ export default function FilterBar({ options, criteria, onChange, onClear }: Filt
           )}
           onChange={(prices) => onChange({ ...criteria, prices })}
         />
+        <RatingGroup value={criteria.minRating} onChange={(minRating) => onChange({ ...criteria, minRating })} />
         <CheckboxGroup
           legend="Tags"
           values={options.tags}

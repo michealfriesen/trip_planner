@@ -26,6 +26,9 @@ export const CATEGORY_GROUPS: Readonly<Record<string, readonly Category[]>> = {
   Food: [Category.Restaurant, Category.Cafe],
 };
 
+/** Choices for the minimum dataset rating filter. */
+export const MIN_RATING_OPTIONS = [2, 2.5, 3, 3.5, 4, 4.5] as const;
+
 export interface TravelMode {
   name: string;
   overheadMin: number;

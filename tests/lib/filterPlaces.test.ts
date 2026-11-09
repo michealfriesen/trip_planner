@@ -48,6 +48,18 @@ describe("filterPlaces", () => {
     ]);
   });
 
+  it("keeps places at or above the minimum rating; an unrated place may be inaccurate", () => {
+    const places = [
+      makePlace({ id: "low", rating: 3.4 }),
+      makePlace({ id: "edge", rating: 3.5 }),
+      makePlace({ id: "high", rating: 4.8 }),
+      makePlace({ id: "unrated", rating: undefined }),
+    ];
+    const result = filterPlaces(places, criteria({ minRating: 3.5 }), {});
+    expect(result.matches.map((p) => p.id)).toEqual(["edge", "high"]);
+    expect(result.uncertainMatches.map((p) => p.id)).toEqual(["unrated"]);
+  });
+
   it("hides not-interested places unless shown, but always shows a not-interested must-visit", () => {
     const places = [makePlace({ id: "meh" }), makePlace({ id: "must" }), makePlace({ id: "plain" })];
     const prefs = {
