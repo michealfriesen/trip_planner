@@ -7,6 +7,7 @@ import FilterBar from "@/components/FilterBar/FilterBar";
 import MapPlacePanel from "@/components/MapPlacePanel/MapPlacePanel";
 import PlaceList from "@/components/PlaceList/PlaceList";
 import PlaceMap, { type MapFocus } from "@/components/PlaceMap/PlaceMap";
+import ScrollToTop from "@/components/ScrollToTop/ScrollToTop";
 import SearchBox from "@/components/SearchBox/SearchBox";
 import SortSelect from "@/components/SortSelect/SortSelect";
 import { usePreferences } from "@/hooks/usePreferences";
@@ -247,6 +248,7 @@ export default function DiscoverView({ places, fetchedAt, linkedPlaceId }: Disco
           selectedId={selectedId}
           onSelect={selectFromList}
         />
+        <ScrollToTop targetRef={listRef} />
       </section>
     </div>
   );
