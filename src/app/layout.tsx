@@ -4,7 +4,7 @@ import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Italy Trip Planner",
+  title: "itineraryay",
   description: "Browse places in Italy and plan a short trip.",
 };
 

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Logo from "@/components/Logo/Logo";
 import ThemeToggle from "@/components/ThemeToggle/ThemeToggle";
 import styles from "./AppNav.module.css";
 
@@ -14,7 +15,12 @@ export default function AppNav() {
   const pathname = usePathname();
   return (
     <header className={styles.header}>
-      <span className={styles.brand}>Italy Trip Planner</span>
+      <Link href="/" className={styles.brand} aria-label="itineraryay home">
+        <Logo />
+        <span>
+          itinerar<span className={styles.yay}>yay</span>
+        </span>
+      </Link>
       <nav aria-label="Main">
         <ul className={styles.links}>
           {LINKS.map(({ href, label }) => {
